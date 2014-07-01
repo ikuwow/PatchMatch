@@ -11,5 +11,7 @@ srcImg = imread('lena.bmp');
 
 psz = 9;
 
-NNF = PatchMatch(inImg, srcImg, psz);
+tic
+[NNF, debug] = PatchMatch(inImg, srcImg, psz);
+toc
 
