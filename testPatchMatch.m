@@ -4,14 +4,25 @@
 clear all;
 close all;
 
-inImg = imread('barbara.bmp');
-srcImg = imread('lena.bmp');
+inImg = rgb2gray(imread('barbara.bmp'));
+srcImg = rgb2gray(imread('lena.bmp'));
 % mask = ones(size(inImg,1),size(inImg,2));
 % mask(100:120,200:220) = NaN; 
 
 psz = 9;
+w = (psz-1)/2;
 
 tic
 [NNF, debug] = PatchMatch(inImg, srcImg, psz);
 toc
+
+reconstImg = zeros(size(inImg));
+
+for ii = (1+w):psz:size(inImg,1)-w
+    for jj = (1+w):psz:size(inImg,2)-w
+        reconstImg(ii-w:ii+w,jj-w:jj+w) = srcImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+    end
+end
+
+
 

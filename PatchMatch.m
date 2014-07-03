@@ -61,24 +61,13 @@ for ii = 1:tsz(1)
         existValue((ii-w:ii+w)>tsz(1),:) = false;
         existValue(:,(jj-w:jj+w)>tsz(2)) = false;
         % debug = existValue;return
+
         sPatch = sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
         sPatch = sPatch(existValue);
-
-        % debug = existValue;return
-        % for itr1 = -w: w
-        %     for itr2 = -w: +w
-        %         if ii+itr1>=1 && jj+itr2>=1 && ii+itr1<=tsz(1) && jj+itr2<=tsz(2)
-        %         % if existValue(itr1+w+1,itr2);
-        %             tPatch(itr1+w+1,itr2+w+1) = targetImg(ii+itr1,jj+itr2);
-        %         else 
-        %             tPatch(itr1+w+1,itr2+w+1) = NaN;
-        %         end
-        %     end
-        % end
             
         ofs = (tPatch(:) - sPatch(:)).^2;
-        ofs = ofs(~isnan(ofs(:)));
-        offsets(ii,jj) = sum(ofs(:))/length(ofs);
+        % ofs = ofs(~isnan(ofs(:)));
+        offsets(ii,jj) = sum(ofs)/length(ofs);
     end
 end
 
@@ -95,12 +84,25 @@ disp('Propagating...');
 %% main loop (raster scan order)
 for ii = 1:tsz(1)
     for jj = 1:tsz(2)
-        tPatch = targetImg( max(1,ii-w):min(ii+w,tsz(1)), max(1,jj-w):min(jj+w,tsz(2)) );
+        % disp(sprintf('ii=%d, jj=%d',ii,jj));
+        % tPatch = targetImg( max(1,ii-w):min(ii+w,tsz(1)), max(1,jj-w):min(jj+w,tsz(2)) );
         if (ii-1>=1 && jj-1 >=1)
             % compare belows
             % offsets(ii,jj);
             % offsets(ii-1,jj);
             % offsets(ii,jj-1);
+
+            [~, idx] = min([offsets(ii,jj) , offsets(ii-1,jj), offsets(ii,jj-1)]);
+            switch idx
+                case 1
+                    break;
+                case 2
+                    offsets(ii,jj) = offsets(ii-1,jj);
+                    NNF(ii,jj,:) = NNF(ii-1,jj,:);
+                case 3
+                    offsets(ii,jj) = offsets(ii,jj-1);
+                    NNF(ii,jj,:) = NNF(ii,jj-1,:);
+            end
 
             % sPatch_self = sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
             % sPatch_left = sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
@@ -118,14 +120,31 @@ for ii = 1:tsz(1)
             % if upOffset > selfOffset
 
 
+
         elseif (ii -1 >= 1) 
             % compare belows
             % offsets(ii,jj);
             % offsets(ii-1,jj);
+            [~, idx] = min([ offsets(ii,jj) , offsets(ii-1,jj) ]);
+            switch idx
+                case 1
+                    break;
+                case 2 
+                    offsets(ii,jj) = offsets(ii-1,jj);
+                    NNF(ii,jj,:) = NNF(ii-1,jj,:);
+            end
         elseif (jj -1 >= 1) 
             % compare belows
             % offsets(ii,jj);
             % offsets(ii,jj-1);
+            [~, idx] = min([offsets(ii,jj) , offsets(ii,jj-1) ]);
+            switch idx
+                case 1
+                    break;
+                case 2 
+                    offsets(ii,jj) = offsets(ii,jj-1);
+                    NNF(ii,jj,:) = NNF(ii,jj-1,:);
+            end
         end
         
     end
