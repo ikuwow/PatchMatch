@@ -104,23 +104,6 @@ for ii = 1:tsz(1)
                     NNF(ii,jj,:) = NNF(ii,jj-1,:);
             end
 
-            % sPatch_self = sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-            % sPatch_left = sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-            % sPatch_up = sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-
-            % tPatch_self = targetImg(ii-w:ii+w,jj-w:jj+w);
-            % tPatch_left = targetImg(ii-w:ii+w,jj-w-1:jj+w-1);
-            % tPatch_up = targetImg(ii-w-1:ii+w-1,jj-w:jj+w);
-
-            % selfOffset = sum((sPatch_self(:) - tPatch_self(:)).^2);
-            % upOffset = sum((sPatch_up(:) - tPatch_up(:)).^2);
-            % leftOffset = sum((sPatch_left(:) - tPatch_left(:)).^2);
-
-            % switch max([upOffset,selfOffset,leftOffset]);
-            % if upOffset > selfOffset
-
-
-
         elseif (ii -1 >= 1) 
             % compare belows
             % offsets(ii,jj);
@@ -145,7 +128,7 @@ for ii = 1:tsz(1)
                     offsets(ii,jj) = offsets(ii,jj-1);
                     NNF(ii,jj,:) = NNF(ii,jj-1,:);
             end
-        end
+        end % endif
         
     end
 end
@@ -159,6 +142,29 @@ end
 %%%%%%%%%%%%%%%%%%%%%%
 %--  RandomSearch  --%
 %%%%%%%%%%%%%%%%%%%%%%
+radius = 8;
+numItr = 5;
+alpha = .5;
+for ii = 1:tsz(1)
+    imin = max(1,ii-radius);
+    imax = min(tsz(1),ii+radius);
+    for jj = 1:tsz(2)
+        jmin = max(2,jj-radius);
+        jmax = min(tsz(2),jj+radius);
+        
+        for itr = 1:numItr
+            % rand*radius;
+            ofs(itr) = 
+        end
+
+        % min
+    
+    end
+end
+
+
+
+
 
 
 end % end of function
