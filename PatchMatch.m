@@ -3,11 +3,14 @@
 %
 % the Matlab code of PatchMatch algorithm
 % PatchMatch returns approximate nearest neighbor field (NNF).
-
+% 
+%
+% Usage : [NNF, debug] = PatchMatch(targetImg, sourceImg, psz)
 % targetImg: An image (usually masked by NaN. NaN is lost domain)
 % sourceImg: An image from which patches are extracted, same size as targetImg.
 % psz: patch size (psz x psz). Default is 9. 
 % NNF: contains indices of sourceImg for each indices of targetImg
+% debug: debugging information.
 
 function [NNF, debug] = PatchMatch(targetImg, sourceImg, psz)
 
@@ -26,6 +29,7 @@ sourceImg = double(sourceImg);
 %%%%%%%%%%%%%%%%%%%%
 
 itrNum = 0;
+debug = 0;
 
 ssz = [size(sourceImg,1),size(sourceImg,2)];
 tsz = [size(targetImg,1),size(targetImg,2)];
@@ -35,6 +39,8 @@ else
     error('psz must be odd.');
 end
 
+targetImg_NaN = nan(tsz(1)+2*w,tsz(2)+2*w);
+targetImg_NaN(1+w:tsz(1)+w,1+w:tsz(2)+w) = targetImg;
 
 % NNF indices whose patches do not lap over outer range of images
 NNF = cat(3,...
@@ -51,27 +57,21 @@ for ii = 1:tsz(1)
     for jj = 1:tsz(2)
         % tPatch = nan(psz);
 
-        tPatch = targetImg( max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)) );
+        % tPatch = targetImg( max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)) );
+        % sPatch = sPatch(validPixels);
 
-        % [x,y] = meshgrid(ii-w:ii+w,jj-w:jj+w); % heavy...
-        % existValue = (x>=1 & y>=1 & x<=tsz(1) & y<=tsz(2));
-        existValue = logical(ones(psz,psz));
-        existValue((ii-w:ii+w)<1,:) = false;
-        existValue(:,(jj-w:jj+w)<1) = false;
-        existValue((ii-w:ii+w)>tsz(1),:) = false;
-        existValue(:,(jj-w:jj+w)>tsz(2)) = false;
-        % debug = existValue;return
+        tPatch = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w);
 
         sPatch = sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-        sPatch = sPatch(existValue);
             
-        ofs = (tPatch(:) - sPatch(:)).^2;
-        % ofs = ofs(~isnan(ofs(:)));
-        offsets(ii,jj) = sum(ofs)/length(ofs);
+        ofs = tPatch(:) - sPatch(:);
+        ofs = ofs(~isnan(ofs(:)));
+        offsets(ii,jj) = sum(ofs.^2)/length(ofs);
     end
 end
 
 debug = offsets;
+% return
 
 
 %%%%%%%%%%%%%%%%%%%%%
@@ -85,59 +85,56 @@ disp('Propagating...');
 for ii = 1:tsz(1)
     for jj = 1:tsz(2)
         % disp(sprintf('ii=%d, jj=%d',ii,jj));
-        % tPatch = targetImg( max(1,ii-w):min(ii+w,tsz(1)), max(1,jj-w):min(jj+w,tsz(2)) );
-        if (ii-1>=1 && jj-1 >=1)
-            % compare belows
-            % offsets(ii,jj);
-            % offsets(ii-1,jj);
-            % offsets(ii,jj-1);
+        % pre_ofs = offsets(ii,jj)
 
-            [~, idx] = min([offsets(ii,jj) , offsets(ii-1,jj), offsets(ii,jj-1)]);
-            switch idx
-                case 1
-                    break;
-                case 2
-                    offsets(ii,jj) = offsets(ii-1,jj);
-                    NNF(ii,jj,:) = NNF(ii-1,jj,:);
-                case 3
-                    offsets(ii,jj) = offsets(ii,jj-1);
-                    NNF(ii,jj,:) = NNF(ii,jj-1,:);
-            end
+        ofs = [offsets(ii,jj)];
+        if ii-1>=1 
+            ofs = [ofs,offsets(ii-1,jj)]; 
+        else
+            ofs = [ofs,Inf];
+        end
+        if jj-1>=1
+            ofs = [ofs,offsets(ii,jj-1)];
+        else
+            ofs = [ofs,Inf];
+        end
 
-        elseif (ii -1 >= 1) 
-            % compare belows
-            % offsets(ii,jj);
-            % offsets(ii-1,jj);
-            [~, idx] = min([ offsets(ii,jj) , offsets(ii-1,jj) ]);
-            switch idx
-                case 1
-                    break;
-                case 2 
-                    offsets(ii,jj) = offsets(ii-1,jj);
-                    NNF(ii,jj,:) = NNF(ii-1,jj,:);
-            end
-        elseif (jj -1 >= 1) 
-            % compare belows
-            % offsets(ii,jj);
-            % offsets(ii,jj-1);
-            [~, idx] = min([offsets(ii,jj) , offsets(ii,jj-1) ]);
-            switch idx
-                case 1
-                    break;
-                case 2 
-                    offsets(ii,jj) = offsets(ii,jj-1);
-                    NNF(ii,jj,:) = NNF(ii,jj-1,:);
-            end
-        end % endif
-        
+        [~,idx] = min(ofs);
+        % propagate from left
+        if idx==2 && NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
+            NNF(ii,jj,:) = NNF(ii-1,jj,:);
+            NNF(ii,jj,1) = NNF(ii,jj,1)+1;
+            tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+            tmp = tmp(~isnan(tmp(:)));
+            offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+
+        % propagate from above
+        elseif idx==3 && NNF(ii,jj-1,1)<=ssz(1) && NNF(ii,jj-1,2)+1+w<=ssz(2)
+            NNF(ii,jj,:) = NNF(ii,jj-1,:);
+            NNF(ii,jj,2) = NNF(ii,jj,2)+1;
+            tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+            tmp = tmp(~isnan(tmp(:)));
+            offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+        end
+
+        % it's possible to be bigger than previous offsets
+        %{
+        if (offsets(ii,jj) > pre_ofs)
+            error('bigger offests!?');
+        end
+        %}
+
     end
 end
 
 % else 
 
+debug.offsets = offsets;
+
 % even iteration ( reverse raster scan order)
 
 %  end
+
 
 %%%%%%%%%%%%%%%%%%%%%%
 %--  RandomSearch  --%
@@ -165,6 +162,48 @@ end
 
 
 
+disp('RandomSearch...');
+radius = 8;
+numItr = 1;
+alpha = .5;
+count = 0;
+for ii = 1:tsz(1)
+    for jj = 1:tsz(2)
+        if jj==1
+            disp(sprintf('ii=%d, jj=%d',ii,jj));
+        end
 
+        iis_min = max(1+w,NNF(ii,jj,1)-radius);
+        iis_max = min(NNF(ii,jj,1)+radius,ssz(1)-w);
+        jjs_min = max(1+w,NNF(ii,jj,2)-radius);
+        jjs_max = min(NNF(ii,jj,2)+radius,ssz(2)-w);
+
+        iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
+        jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
+
+        while iis==NNF(ii,jj,1) && jjs==NNF(ii,jj,2) % Don't allow self-matching
+            iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
+            jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
+        end
+
+        sPatch = sourceImg(iis-w:iis+w,jjs-w:jjs+w);
+        tPatch = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w);
+
+        tmp1 = tPatch(:) - sPatch(:);
+        tmp2 = tmp1(~isnan(tmp1));
+        ofs = sum(tmp2.^2)/length(tmp2);
+
+        if ofs < offsets
+            NNF(ii,jj,:) = [iis;jjs];
+            offsets(ii,jj) = ofs;
+            count = count + 1;
+        end
+
+    end
+end
+
+debug.offsets = offsets;
+
+count
 
 end % end of function

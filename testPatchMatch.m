@@ -25,6 +25,7 @@ for ii = (1+w):psz:size(inImg,1)-w
 end
 
 reconstImg = uint8(reconstImg);
+PSNR(double(reconstImg),double(inImg),255)
 figure(1),imshow(reconstImg);
 
 
