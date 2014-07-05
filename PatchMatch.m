@@ -3,11 +3,14 @@
 %
 % the Matlab code of PatchMatch algorithm
 % PatchMatch returns approximate nearest neighbor field (NNF).
-
+% 
+%
+% Usage : [NNF, debug] = PatchMatch(targetImg, sourceImg, psz)
 % targetImg: An image (usually masked by NaN. NaN is lost domain)
 % sourceImg: An image from which patches are extracted, same size as targetImg.
 % psz: patch size (psz x psz). Default is 9. 
 % NNF: contains indices of sourceImg for each indices of targetImg
+% debug: debugging information.
 
 function [NNF, debug] = PatchMatch(targetImg, sourceImg, psz)
 
@@ -54,11 +57,6 @@ for ii = 1:tsz(1)
     for jj = 1:tsz(2)
         % tPatch = nan(psz);
 
-        % validPixels = logical(ones(psz,psz));
-        % validPixels((ii-w:ii+w)<1 | (ii-w:ii+w)>tsz(1),:) = false;
-        % validPixels(:,(jj-w:jj+w)<1 | (jj-w:jj+w)>tsz(2)) = false;
-        % debug = existValue;return
-
         % tPatch = targetImg( max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)) );
         % sPatch = sPatch(validPixels);
 
@@ -102,6 +100,7 @@ for ii = 1:tsz(1)
         end
 
         [~,idx] = min(ofs);
+        % propagate from left
         if idx==2 && NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
             NNF(ii,jj,:) = NNF(ii-1,jj,:);
             NNF(ii,jj,1) = NNF(ii,jj,1)+1;
@@ -109,6 +108,7 @@ for ii = 1:tsz(1)
             tmp = tmp(~isnan(tmp(:)));
             offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
 
+        % propagate from above
         elseif idx==3 && NNF(ii,jj-1,1)<=ssz(1) && NNF(ii,jj-1,2)+1+w<=ssz(2)
             NNF(ii,jj,:) = NNF(ii,jj-1,:);
             NNF(ii,jj,2) = NNF(ii,jj,2)+1;
@@ -116,10 +116,6 @@ for ii = 1:tsz(1)
             tmp = tmp(~isnan(tmp(:)));
             offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
         end
-
-        %}
-        % offsets(ii,jj)
-        % pause(.5);
 
         % it's possible to be bigger than previous offsets
         %{
@@ -133,7 +129,7 @@ end
 
 % else 
 
-debug = offsets;
+debug.offsets = offsets;
 
 % even iteration ( reverse raster scan order)
 
@@ -143,61 +139,48 @@ debug = offsets;
 %%%%%%%%%%%%%%%%%%%%%%
 %--  RandomSearch  --%
 %%%%%%%%%%%%%%%%%%%%%%
-%{
+disp('RandomSearch...');
 radius = 8;
 numItr = 1;
 alpha = .5;
+count = 0;
 for ii = 1:tsz(1)
-    imin = max(1,ii-radius);
-    imax = min(tsz(1),ii+radius);
-    debug = [imin,imax];return
     for jj = 1:tsz(2)
-        jmin = max(1,jj-radius);
-        jmax = min(tsz(2),jj+radius);
-        
-        ofs = [];
-        for itr = 1:numItr
-            iii = floor(rand*(imax-imin+1)) + imin;
-            jjj = floor(rand*(jmax-jmin+1)) + jmin;
-            while (iii == ii && jjj == jj) % Don't allow self-matching
-                iii = floor(rand*(imax-imin+1)) + imin;
-                jjj = floor(rand*(jmax-jmin+1)) + jmin;
-            end
-            tPatch = targetImg( max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)) );
-
-            existValue = logical(ones(psz,psz));
-            existValue((ii-w:ii+w)<1 | (ii-w:ii+w)>tsz(1),:) = false;
-            existValue(:,(jj-w:jj+w)<1 | (jj-w:jj+w)>tsz(2)) = false;
-
-            try
-                sPatch = sourceImg(iii-w:jjj+w,jjj-w:jjj+w);
-            catch err
-                iii
-                jjj
-                error('some error');
-            end
-            sPatch = sPatch(existValue);
-            ofs = (tPatch(:) - sPatch(:)).^2;
-
-            tmp = (tPatch(:) - sPatch(:)).^2;
-            ofs(itr) = sum(tmp(:))/length(tmp(:));
-
-            if ofs(itr) < offsets(ii,jj)
-                NNF(ii,jj,:) = [iii,jjj];
-                offsets(ii,jj) = ofs(itr);
-            end
-
+        if jj==1
+            disp(sprintf('ii=%d, jj=%d',ii,jj));
         end
 
-        % min
-    
+        iis_min = max(1+w,NNF(ii,jj,1)-radius);
+        iis_max = min(NNF(ii,jj,1)+radius,ssz(1)-w);
+        jjs_min = max(1+w,NNF(ii,jj,2)-radius);
+        jjs_max = min(NNF(ii,jj,2)+radius,ssz(2)-w);
+
+        iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
+        jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
+
+        while iis==NNF(ii,jj,1) && jjs==NNF(ii,jj,2) % Don't allow self-matching
+            iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
+            jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
+        end
+
+        sPatch = sourceImg(iis-w:iis+w,jjs-w:jjs+w);
+        tPatch = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w);
+
+        tmp1 = tPatch(:) - sPatch(:);
+        tmp2 = tmp1(~isnan(tmp1));
+        ofs = sum(tmp2.^2)/length(tmp2);
+
+        if ofs < offsets
+            NNF(ii,jj,:) = [iis;jjs];
+            offsets(ii,jj) = ofs;
+            count = count + 1;
+        end
+
     end
 end
-%}
 
+debug.offsets = offsets;
 
-
-
-
+count
 
 end % end of function
