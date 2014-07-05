@@ -88,92 +88,38 @@ for ii = 1:tsz(1)
     for jj = 1:tsz(2)
         % disp(sprintf('ii=%d, jj=%d',ii,jj));
         % pre_ofs = offsets(ii,jj)
-        try
 
-        % tPatch = targetImg( max(1,ii-w):min(ii+w,tsz(1)), max(1,jj-w):min(jj+w,tsz(2)) );
-        if (ii-1>=1 && jj-1 >=1)
-            % compare belows
-            % offsets(ii,jj);
-            % offsets(ii-1,jj);
-            % offsets(ii,jj-1);
+        ofs = [offsets(ii,jj)];
+        if ii-1>=1 
+            ofs = [ofs,offsets(ii-1,jj)]; 
+        else
+            ofs = [ofs,Inf];
+        end
+        if jj-1>=1
+            ofs = [ofs,offsets(ii,jj-1)];
+        else
+            ofs = [ofs,Inf];
+        end
 
-            [~, idx] = min([offsets(ii,jj) , offsets(ii-1,jj), offsets(ii,jj-1)]);
-            switch idx
-                case 2
-                    if NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
-                    NNF(ii,jj,:) = NNF(ii-1,jj,:);
-                    NNF(ii,jj,1) = NNF(ii,jj,1)+1;
-                    tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-                    tmp = tmp(~isnan(tmp(:)));
-                    offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+        [~,idx] = min(ofs);
+        if idx==2 && NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
+            NNF(ii,jj,:) = NNF(ii-1,jj,:);
+            NNF(ii,jj,1) = NNF(ii,jj,1)+1;
+            tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+            tmp = tmp(~isnan(tmp(:)));
+            offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
 
-                    % offsets(ii,jj) = offsets(ii-1,jj);
-                    % NNF(ii,jj,:) = NNF(ii-1,jj,:);
-                    end
-                case 3
-                    if NNF(ii,jj-1,1)<=ssz(1) && NNF(ii,jj-1,2)+1+w<=ssz(2)
-                    NNF(ii,jj,:) = NNF(ii,jj-1,:);
-                    NNF(ii,jj,2) = NNF(ii,jj,2)+1;
-                    tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-                    tmp = tmp(~isnan(tmp(:)));
-                    offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
-                    end
+        elseif idx==3 && NNF(ii,jj-1,1)<=ssz(1) && NNF(ii,jj-1,2)+1+w<=ssz(2)
+            NNF(ii,jj,:) = NNF(ii,jj-1,:);
+            NNF(ii,jj,2) = NNF(ii,jj,2)+1;
+            tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+            tmp = tmp(~isnan(tmp(:)));
+            offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+        end
 
-                    % offsets(ii,jj) = offsets(ii,jj-1);
-                    % NNF(ii,jj,:) = NNF(ii,jj-1,:);
-            end
-
-        elseif (ii -1 >= 1) 
-            % compare belows
-            % offsets(ii,jj);
-            % offsets(ii-1,jj);
-            [~, idx] = min([ offsets(ii,jj) , offsets(ii-1,jj) ]);
-            switch idx
-                case 2 
-                    if NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
-                    NNF(ii,jj,:) = NNF(ii-1,jj,:);
-                    NNF(ii,jj,1) = NNF(ii,jj,1)+1;
-                    tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-                    tmp = tmp(~isnan(tmp(:)));
-                    offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
-                    % NNF(ii,jj,:) = NNF(ii-1,jj,:)+[-1,0];
-                    % tmp = (targetImg(ii-w,jj-w)-sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w)).^2
-                    % offsets(ii,jj) = sum(tmp(:))/length(tmp(:));
-                    % offsets(ii,jj) = offsets(ii-1,jj);
-                    % NNF(ii,jj,:) = NNF(ii-1,jj,:);
-                    end
-            end
-        elseif (jj -1 >= 1) 
-            % compare belows
-            % offsets(ii,jj);
-            % offsets(ii,jj-1);
-            [~, idx] = min([offsets(ii,jj) , offsets(ii,jj-1) ]);
-            switch idx
-                case 2 
-                    if NNF(ii,jj-1,1)<=ssz(1) && NNF(ii,jj-1,2)+1+w<=ssz(2)
-                    NNF(ii,jj,:) = NNF(ii,jj-1,:);
-                    NNF(ii,jj,2) = NNF(ii,jj,2)+1;
-                    tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-                    tmp = tmp(~isnan(tmp(:)));
-                    offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
-
-                    % offsets(ii,jj) = sum(tmp(:))/length(tmp(:));
-                    % offsets(ii,jj) = offsets(ii,jj-1);
-                    % NNF(ii,jj,:) = NNF(ii,jj-1,:);
-                    end
-            end
-        end % endif
+        %}
         % offsets(ii,jj)
         % pause(.5);
-
-        catch err
-            ii,jj
-            debug = err;
-            % err
-            NNF(ii,jj,:)
-            error('some error');
-            return
-        end
 
         % it's possible to be bigger than previous offsets
         %{
