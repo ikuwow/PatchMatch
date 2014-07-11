@@ -56,12 +56,10 @@ offsets = inf(tsz(1),tsz(2));
 for ii = 1:tsz(1)
     for jj = 1:tsz(2)
         % tPatch = nan(psz);
-
         % tPatch = targetImg( max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)) );
         % sPatch = sPatch(validPixels);
 
         tPatch = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w);
-
         sPatch = sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
             
         ofs = tPatch(:) - sPatch(:);
@@ -139,29 +137,6 @@ debug.offsets = offsets;
 %%%%%%%%%%%%%%%%%%%%%%
 %--  RandomSearch  --%
 %%%%%%%%%%%%%%%%%%%%%%
-radius = 8;
-numItr = 5;
-alpha = .5;
-for ii = 1:tsz(1)
-    imin = max(1,ii-radius);
-    imax = min(tsz(1),ii+radius);
-    for jj = 1:tsz(2)
-        jmin = max(2,jj-radius);
-        jmax = min(tsz(2),jj+radius);
-        
-        for itr = 1:numItr
-            % rand*radius;
-            ofs(itr) = 
-        end
-
-        % min
-    
-    end
-end
-
-
-
-
 disp('RandomSearch...');
 radius = 8;
 numItr = 1;
