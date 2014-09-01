@@ -62,12 +62,10 @@ offsets = inf(tsz(1),tsz(2));
 for ii = 1:tsz(1)
     for jj = 1:tsz(2)
         % tPatch = nan(psz);
-
         % tPatch = targetImg( max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)) );
         % sPatch = sPatch(validPixels);
 
         tPatch = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w);
-
         sPatch = sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
             
         ofs = tPatch(:) - sPatch(:);

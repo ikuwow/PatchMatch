@@ -12,6 +12,7 @@ srcImg = rgb2gray(imread('lena.bmp'));
 psz = 9;
 w = (psz-1)/2;
 
+disp('Speed Test Start');
 tic
 [NNF, debug] = PatchMatch(inImg, srcImg, psz);
 toc
