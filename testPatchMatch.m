@@ -6,6 +6,12 @@ close all;
 
 inImg = rgb2gray(imread('barbara.bmp'));
 srcImg = rgb2gray(imread('lena.bmp'));
+
+SaveFolderName = datestr(now,'yymmdd-HHMMSS');
+mkdir('results',SaveFolderName);
+
+diary(fullfile('results',SaveFolderName,'log.txt'));
+
 % mask = ones(size(inImg,1),size(inImg,2));
 % mask(100:120,200:220) = NaN; 
 
@@ -16,6 +22,8 @@ disp('Speed Test Start');
 tic
 [NNF, debug] = PatchMatch(inImg, srcImg, psz);
 toc
+
+%% reconstruction %%
 
 reconstImg = zeros(size(inImg));
 
@@ -29,5 +37,7 @@ reconstImg = uint8(reconstImg);
 PSNR(double(reconstImg),double(inImg),255)
 figure(1),imshow(reconstImg);
 
+imwrite(reconstImg,fullfile('results',SaveFolderName,'reconstructed.bmp','BMP'));
 
+diary off
 

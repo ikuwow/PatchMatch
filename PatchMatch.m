@@ -35,8 +35,6 @@ sourceImg = double(sourceImg);
 %--  Initialize  --%
 %%%%%%%%%%%%%%%%%%%%
 
-debug = 0;
-
 ssz = [size(sourceImg,1),size(sourceImg,2)];
 tsz = [size(targetImg,1),size(targetImg,2)];
 if mod(psz,2)==1
@@ -150,8 +148,8 @@ radius = 8;
 count = 0;
 for ii = 1:tsz(1)
     for jj = 1:tsz(2)
-        if jj==1
-            fprintf('ii=%d, jj=%d',ii,jj);
+        if jj==1 
+            fprintf('ii=%d, jj=%d\n',ii,jj);
         end
 
         iis_min = max(1+w,NNF(ii,jj,1)-radius);
