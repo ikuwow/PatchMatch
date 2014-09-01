@@ -9,7 +9,7 @@ NNF = cat(3,...
     randi([1+w,size(srcImg,2)-w],size(inImg))...
 );
 
-% ひとつづつ
+% one by one
 tic
 for ii = 1:size(inImg,1)
 for ii = 1:size(inImg,2)
@@ -22,7 +22,7 @@ end
 end
 toc
 
-% はじめからNaN 
+% firstly NaN 
 tic
 inImg_NaN = nan(size(inImg,1)+2*w,size(inImg,2)+2*w);
 inImg_NaN(1+w:size(inImg,1)+w,1+w:size(inImg,2)+w) = inImg;

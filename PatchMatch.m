@@ -3,23 +3,30 @@
 %
 % the Matlab code of PatchMatch algorithm
 % PatchMatch returns approximate nearest neighbor field (NNF).
+%
+% author: Ikuo Degawa <degawa@tkhm.elec.keio.ac.jp>
 % 
 %
 % Usage : [NNF, debug] = PatchMatch(targetImg, sourceImg, psz)
-% targetImg: An image (usually masked by NaN. NaN is lost domain)
-% sourceImg: An image from which patches are extracted, same size as targetImg.
-% psz: patch size (psz x psz). Default is 9. 
-% NNF: contains indices of sourceImg for each indices of targetImg
-% debug: debugging information.
+% 
+% Inputs: 
+% - targetImg: An image (usually masked by NaN. NaN is lost domain)
+% - sourceImg: An image from which patches are extracted, same size as targetImg.
+% - psz: patch size (psz x psz). Default is 9. 
+% 
+% Outputs:
+% - NNF: contains indices of sourceImg for each indices of targetImg
+% - debug: debugging information.
+%
 
 function [NNF, debug] = PatchMatch(targetImg, sourceImg, psz)
 
 % set psz to default
-if (nargin<3) psz = 9; end
+if (nargin<3); psz = 9; end
 
 % grayscale images only (TODO: extend to color images)
-if ndims(targetImg) > 2 targetImg = rgb2gray(targetImg); end
-if ndims(sourceImg) > 2 sourceImg = rgb2gray(sourceImg); end
+if ~ismatrix(targetImg); targetImg = rgb2gray(targetImg); end
+if ~ismatrix(sourceImg); sourceImg = rgb2gray(sourceImg); end
 
 targetImg = double(targetImg);
 sourceImg = double(sourceImg);
@@ -28,7 +35,6 @@ sourceImg = double(sourceImg);
 %--  Initialize  --%
 %%%%%%%%%%%%%%%%%%%%
 
-itrNum = 0;
 debug = 0;
 
 ssz = [size(sourceImg,1),size(sourceImg,2)];
@@ -51,7 +57,7 @@ NNF = cat(3,...
 % initialize offsets (what a redundant code...)
 % need not calcurate offset in advance? => anyway, implement!
 disp('Initalizing...');
-tPatch = zeros(psz);
+% tPatch = zeros(psz);
 offsets = inf(tsz(1),tsz(2));
 for ii = 1:tsz(1)
     for jj = 1:tsz(2)
@@ -70,7 +76,7 @@ for ii = 1:tsz(1)
     end
 end
 
-debug = offsets;
+debug.offsets_ini = offsets;
 % return
 
 
@@ -129,7 +135,7 @@ end
 
 % else 
 
-debug.offsets = offsets;
+debug.offsets_prop = offsets;
 
 % even iteration ( reverse raster scan order)
 
@@ -141,13 +147,13 @@ debug.offsets = offsets;
 %%%%%%%%%%%%%%%%%%%%%%
 disp('RandomSearch...');
 radius = 8;
-numItr = 1;
-alpha = .5;
+% numItr = 1;
+% alpha = .5;
 count = 0;
 for ii = 1:tsz(1)
     for jj = 1:tsz(2)
         if jj==1
-            disp(sprintf('ii=%d, jj=%d',ii,jj));
+            fprintf('ii=%d, jj=%d',ii,jj);
         end
 
         iis_min = max(1+w,NNF(ii,jj,1)-radius);
