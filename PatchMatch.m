@@ -59,9 +59,6 @@ disp('Initalizing...');
 offsets = inf(tsz(1),tsz(2));
 for ii = 1:tsz(1)
   for jj = 1:tsz(2)
-    % tPatch = nan(psz);
-    % tPatch = targetImg( max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)) );
-    % sPatch = sPatch(validPixels);
 
     tPatch = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w);
     sPatch = sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
@@ -80,13 +77,15 @@ debug.offsets_ini = offsets;
 radius = 8;
 % numItr = 1;
 % alpha = .5;
-count = 0;
 
-%
-%  main loop (raster scan order)
-%
+loop_start = cputime;
+
+%%
+%%  main loop (raster scan order)
+%%
 for ii = 1:tsz(1)
   for jj = 1:tsz(2)
+
 
     if jj==1 
         fprintf('ii=%d, jj=%d\n',ii,jj);
@@ -96,7 +95,7 @@ for ii = 1:tsz(1)
     %--  Propagation  --%
     %%%%%%%%%%%%%%%%%%%%%
 
-    ofs = [offsets(ii,jj)];
+    ofs = offsets(ii,jj);
     if ii-1>=1 
         ofs = [ofs,offsets(ii-1,jj)]; 
     else
@@ -109,6 +108,7 @@ for ii = 1:tsz(1)
     end
 
     [~,idx] = min(ofs);
+
     % propagate from left
     if idx==2 && NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
         NNF(ii,jj,:) = NNF(ii-1,jj,:);
@@ -160,6 +160,10 @@ for ii = 1:tsz(1)
 
   end % jj
 end % ii
+
+loop_end = cputime;
+
+fprintf('Average time for a ii loop is %f\n',(loop_end-loop_start)/tsz(1));
 
 debug.offsets = offsets;
 
