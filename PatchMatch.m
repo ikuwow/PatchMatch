@@ -5,8 +5,8 @@
 % PatchMatch returns approximate nearest neighbor field (NNF).
 %
 % author: Ikuo Degawa <degawa@tkhm.elec.keio.ac.jp>
-% 
 %
+% 
 % Usage : [NNF, debug] = PatchMatch(targetImg, sourceImg, psz)
 % 
 % Inputs: 
@@ -35,8 +35,14 @@ sourceImg = double(sourceImg);
 %--  Initialize  --%
 %%%%%%%%%%%%%%%%%%%%
 
+%% Parameters
+radius = 8;
+% numItr = 1;
+% alpha = .5;
 ssz = [size(sourceImg,1),size(sourceImg,2)];
 tsz = [size(targetImg,1),size(targetImg,2)];
+
+
 if mod(psz,2)==1
     w = (psz-1)/2;
 else
@@ -60,52 +66,39 @@ offsets = inf(tsz(1),tsz(2));
 for ii = 1:tsz(1)
   for jj = 1:tsz(2)
 
-    tPatch = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w);
-    sPatch = sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-        
-    ofs = tPatch(:) - sPatch(:);
+    ofs = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
+          - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+
     ofs = ofs(~isnan(ofs(:)));
     offsets(ii,jj) = sum(ofs.^2)/length(ofs);
+
   end
 end
 
 debug.offsets_ini = offsets;
-% return
 
-
-%% Parameters
-radius = 8;
-% numItr = 1;
-% alpha = .5;
 
 loop_start = cputime;
 
 %%
-%%  main loop (raster scan order)
+%%  Main Loop (raster scan order)
 %%
 for ii = 1:tsz(1)
   for jj = 1:tsz(2)
 
+    % TODO: if offset(ii,jj) is lower than predefined threshold, continue.
 
-    if jj==1 
-        fprintf('ii=%d, jj=%d\n',ii,jj);
-    end
+    if jj==1; fprintf('ii=%d, jj=%d\n',ii,jj); end
+
 
     %%%%%%%%%%%%%%%%%%%%%
     %--  Propagation  --%
     %%%%%%%%%%%%%%%%%%%%%
 
-    ofs = offsets(ii,jj);
-    if ii-1>=1 
-        ofs = [ofs,offsets(ii-1,jj)]; 
-    else
-        ofs = [ofs,Inf];
-    end
-    if jj-1>=1
-        ofs = [ofs,offsets(ii,jj-1)];
-    else
-        ofs = [ofs,Inf];
-    end
+         % center,         top, left
+    ofs = [offsets(ii,jj), Inf, Inf ];
+    if ii-1>=1; ofs(2) = offsets(ii-1,jj); end
+    if jj-1>=1; ofs(3) = offsets(ii,jj-1); end
 
     [~,idx] = min(ofs);
 
@@ -146,14 +139,12 @@ for ii = 1:tsz(1)
         jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
     end
 
-    sPatch = sourceImg(iis-w:iis+w,jjs-w:jjs+w);
-    tPatch = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w);
+    tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis-w:iis+w,jjs-w:jjs+w);
+    tmp2 = tmp1(~isnan(tmp1(:)));
 
-    tmp1 = tPatch(:) - sPatch(:);
-    tmp2 = tmp1(~isnan(tmp1));
     ofs = sum(tmp2.^2)/length(tmp2);
 
-    if ofs < offsets
+    if ofs < offsets % if finds a more relevant patch
         NNF(ii,jj,:) = [iis;jjs];
         offsets(ii,jj) = ofs;
     end
