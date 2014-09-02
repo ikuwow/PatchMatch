@@ -78,18 +78,16 @@ end
 debug.offsets_ini = offsets;
 
 
-loop_start = cputime;
-
 %%
 %%  Main Loop (raster scan order)
 %%
+disp('Main loop start.');
 for ii = 1:tsz(1)
   for jj = 1:tsz(2)
 
     % TODO: if offset(ii,jj) is lower than predefined threshold, continue.
 
-    if jj==1; fprintf('ii=%d, jj=%d\n',ii,jj); end
-
+    if jj==1 && mod(ii,10)==0; fprintf('ii=%d, jj=%d\n',ii,jj); end
 
     %%%%%%%%%%%%%%%%%%%%%
     %--  Propagation  --%
@@ -144,17 +142,13 @@ for ii = 1:tsz(1)
 
     ofs = sum(tmp2.^2)/length(tmp2);
 
-    if ofs < offsets % if finds a more relevant patch
+    if ofs < offsets(ii,jj) % if finds a more relevant patch
         NNF(ii,jj,:) = [iis;jjs];
         offsets(ii,jj) = ofs;
     end
 
   end % jj
 end % ii
-
-loop_end = cputime;
-
-fprintf('Average time for a ii loop is %f\n',(loop_end-loop_start)/tsz(1));
 
 debug.offsets = offsets;
 

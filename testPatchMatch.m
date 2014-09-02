@@ -30,7 +30,7 @@ disp('PatchMatch Done!');
 
 %% reconstruction %%
 
-disp('Reconstructing...');
+fprintf('Reconstructing... ');
 
 reconstImg = zeros(size(inImg));
 
@@ -39,6 +39,7 @@ for ii = (1+w):psz:size(inImg,1)-w
         reconstImg(ii-w:ii+w,jj-w:jj+w) = srcImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
     end
 end
+fprintf('Done!\n');
 
 reconstImg = uint8(reconstImg);
 PSNRs = PSNR(double(reconstImg),double(inImg),255);
