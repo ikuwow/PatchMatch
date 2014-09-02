@@ -78,10 +78,10 @@ end
 debug.offsets_ini = offsets;
 
 
-%%
-%%  Main Loop (raster scan order)
-%%
-disp('Main loop start.');
+%%%%%%%%%%%%%%%%%%%%%%%
+%--  1ST ITERATION  --%
+%%%%%%%%%%%%%%%%%%%%%%%
+disp('1st iteration (raster scan order) start!.');
 for ii = 1:tsz(1)
   for jj = 1:tsz(2)
 
@@ -100,7 +100,7 @@ for ii = 1:tsz(1)
 
     [~,idx] = min(ofs);
 
-    % propagate from left
+    % propagate from top
     if idx==2 && NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
         NNF(ii,jj,:) = NNF(ii-1,jj,:);
         NNF(ii,jj,1) = NNF(ii,jj,1)+1;
@@ -109,7 +109,7 @@ for ii = 1:tsz(1)
         tmp = tmp(~isnan(tmp(:)));
         offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
 
-    % propagate from above
+    % propagate from left
     elseif idx==3 && NNF(ii,jj-1,1)<=ssz(1) && NNF(ii,jj-1,2)+1+w<=ssz(2)
         NNF(ii,jj,:) = NNF(ii,jj-1,:);
         NNF(ii,jj,2) = NNF(ii,jj,2)+1;
@@ -150,6 +150,81 @@ for ii = 1:tsz(1)
   end % jj
 end % ii
 
-debug.offsets = offsets;
+debug.offsets_1st = offsets;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%--  2ND ITERATION  --%
+%%%%%%%%%%%%%%%%%%%%%%%
+disp('2nd iteration (reverse raster scan order) start!.');
+for ii = tsz(1):(-1):1
+  for jj = tsz(2):(-1):1
+
+    % TODO: if offset(ii,jj) is lower than predefined threshold, continue.
+
+    if jj==1 && mod(ii,10)==0; fprintf('ii=%d, jj=%d\n',ii,jj); end
+
+    %%%%%%%%%%%%%%%%%%%%%
+    %--  Propagation  --%
+    %%%%%%%%%%%%%%%%%%%%%
+
+         % center,         bottom, right
+    ofs = [offsets(ii,jj), Inf, Inf ];
+    if ii+1<=tsz(1); ofs(2) = offsets(ii+1,jj); end
+    if jj+1<=tsz(2); ofs(3) = offsets(ii,jj+1); end
+
+    [~,idx] = min(ofs);
+
+    % propagate from bottom
+    if idx==2 && NNF(ii+1,jj,1)-1-w>=1 && NNF(ii+1,jj,2)-w>=1 %ok?
+        NNF(ii,jj,:) = NNF(ii+1,jj,:); %ok
+        NNF(ii,jj,1) = NNF(ii,jj,1)-1; %ok
+        tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
+              - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w); %ok
+        tmp = tmp(~isnan(tmp(:)));
+        offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:)); %ok
+
+    % propagate from right
+    elseif idx==3 && NNF(ii,jj+1,1)-w>=1 && NNF(ii,jj+1,2)-1-w>=1 %ok?
+        NNF(ii,jj,:) = NNF(ii,jj+1,:); %ok
+        NNF(ii,jj,2) = NNF(ii,jj,2)-1; %ok
+        tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
+              - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w); %ok
+        tmp = tmp(~isnan(tmp(:))); %ok
+        offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:)); %ok
+    end
+
+
+    %%%%%%%%%%%%%%%%%%%%%%
+    %--  RandomSearch  --%
+    %%%%%%%%%%%%%%%%%%%%%%
+
+    iis_min = max(1+w,NNF(ii,jj,1)-radius);
+    iis_max = min(NNF(ii,jj,1)+radius,ssz(1)-w);
+    jjs_min = max(1+w,NNF(ii,jj,2)-radius);
+    jjs_max = min(NNF(ii,jj,2)+radius,ssz(2)-w);
+
+    iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
+    jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
+
+    while iis==NNF(ii,jj,1) && jjs==NNF(ii,jj,2) % Don't allow self-matching
+        iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
+        jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
+    end
+
+    tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis-w:iis+w,jjs-w:jjs+w);
+    tmp2 = tmp1(~isnan(tmp1(:)));
+
+    ofs = sum(tmp2.^2)/length(tmp2);
+
+    if ofs < offsets(ii,jj) % if finds a more relevant patch
+        NNF(ii,jj,:) = [iis;jjs];
+        offsets(ii,jj) = ofs;
+    end
+
+  end % jj
+end % ii
+
+debug.offsets_2nd = offsets;
 
 end % end of function
