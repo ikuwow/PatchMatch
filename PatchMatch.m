@@ -82,12 +82,12 @@ debug.offsets_ini = offsets;
 %--  1ST ITERATION  --%
 %%%%%%%%%%%%%%%%%%%%%%%
 disp('1st iteration (raster scan order) start!.');
+fprintf('0==========100\n'); % ten %s.
+fprintf(' '); % ten %s.
 for ii = 1:tsz(1)
   for jj = 1:tsz(2)
 
     % TODO: if offset(ii,jj) is lower than predefined threshold, continue.
-
-    if jj==1 && mod(ii,10)==0; fprintf('ii=%d, jj=%d\n',ii,jj); end
 
     %%%%%%%%%%%%%%%%%%%%%
     %--  Propagation  --%
@@ -147,8 +147,13 @@ for ii = 1:tsz(1)
         offsets(ii,jj) = ofs;
     end
 
+    if mod((ii-1)*tsz(2)+jj,floor(tsz(1)*tsz(2)/10))==0
+        fprintf('|')
+    end
+
   end % jj
 end % ii
+fprintf('\nDone!\n');
 
 debug.offsets_1st = offsets;
 
@@ -157,12 +162,12 @@ debug.offsets_1st = offsets;
 %--  2ND ITERATION  --%
 %%%%%%%%%%%%%%%%%%%%%%%
 disp('2nd iteration (reverse raster scan order) start!.');
+fprintf('0==========100\n'); % ten %s.
+fprintf(' '); % ten %s.
 for ii = tsz(1):(-1):1
   for jj = tsz(2):(-1):1
 
     % TODO: if offset(ii,jj) is lower than predefined threshold, continue.
-
-    if jj==1 && mod(ii,10)==0; fprintf('ii=%d, jj=%d\n',ii,jj); end
 
     %%%%%%%%%%%%%%%%%%%%%
     %--  Propagation  --%
@@ -220,6 +225,10 @@ for ii = tsz(1):(-1):1
     if ofs < offsets(ii,jj) % if finds a more relevant patch
         NNF(ii,jj,:) = [iis;jjs];
         offsets(ii,jj) = ofs;
+    end
+
+    if mod((ii-1)*tsz(2)+jj,floor(tsz(1)*tsz(2)/10))==0
+        fprintf('|')
     end
 
   end % jj
