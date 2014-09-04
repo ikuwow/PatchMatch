@@ -93,7 +93,7 @@ for ii = 1:tsz(1)
     %--  Propagation  --%
     %%%%%%%%%%%%%%%%%%%%%
 
-         % center,         top, left
+            % center,      top, left
     ofs = [offsets(ii,jj), Inf, Inf ];
     if ii-1>=1; ofs(2) = offsets(ii-1,jj); end
     if jj-1>=1; ofs(3) = offsets(ii,jj-1); end
@@ -173,7 +173,7 @@ for ii = tsz(1):(-1):1
     %--  Propagation  --%
     %%%%%%%%%%%%%%%%%%%%%
 
-         % center,         bottom, right
+             % center,   bottom,right
     ofs = [offsets(ii,jj), Inf, Inf ];
     if ii+1<=tsz(1); ofs(2) = offsets(ii+1,jj); end
     if jj+1<=tsz(2); ofs(3) = offsets(ii,jj+1); end
@@ -181,22 +181,22 @@ for ii = tsz(1):(-1):1
     [~,idx] = min(ofs);
 
     % propagate from bottom
-    if idx==2 && NNF(ii+1,jj,1)-1-w>=1 && NNF(ii+1,jj,2)-w>=1 %ok?
-        NNF(ii,jj,:) = NNF(ii+1,jj,:); %ok
-        NNF(ii,jj,1) = NNF(ii,jj,1)-1; %ok
+    if idx==2 && NNF(ii+1,jj,1)-1-w>=1 && NNF(ii+1,jj,2)-w>=1
+        NNF(ii,jj,:) = NNF(ii+1,jj,:);
+        NNF(ii,jj,1) = NNF(ii,jj,1)-1;
         tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
-              - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w); %ok
+              - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
         tmp = tmp(~isnan(tmp(:)));
-        offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:)); %ok
+        offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
 
     % propagate from right
-    elseif idx==3 && NNF(ii,jj+1,1)-w>=1 && NNF(ii,jj+1,2)-1-w>=1 %ok?
-        NNF(ii,jj,:) = NNF(ii,jj+1,:); %ok
-        NNF(ii,jj,2) = NNF(ii,jj,2)-1; %ok
+    elseif idx==3 && NNF(ii,jj+1,1)-w>=1 && NNF(ii,jj+1,2)-1-w>=1
+        NNF(ii,jj,:) = NNF(ii,jj+1,:);
+        NNF(ii,jj,2) = NNF(ii,jj,2)-1;
         tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
-              - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w); %ok
-        tmp = tmp(~isnan(tmp(:))); %ok
-        offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:)); %ok
+              - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+        tmp = tmp(~isnan(tmp(:)));
+        offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
     end
 
 
