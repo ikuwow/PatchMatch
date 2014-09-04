@@ -7,7 +7,7 @@
 % author: Ikuo Degawa <degawa@tkhm.elec.keio.ac.jp>
 %
 % 
-% Usage : [NNF, debug] = PatchMatch(targetImg, sourceImg, psz)
+% Usage: [NNF, debug] = PatchMatch(targetImg, sourceImg, psz)
 % 
 % Inputs: 
 % - targetImg: An image (usually masked by NaN. NaN is lost domain)
@@ -15,7 +15,8 @@
 % - psz: patch size (psz x psz). Default is 9. 
 % 
 % Outputs:
-% - NNF: Nearest Neighbor Field, which contains indices of sourceImg for each indices of targetImg
+% - NNF: Nearest Neighbor Field, which contains indices of sourceImg for 
+%        each corresponding indices of targetImg
 % - debug: debugging information.
 %
 
@@ -237,6 +238,7 @@ for ii = tsz(1):(-1):1
 
   end % jj
 end % ii
+fprintf('\nDone!\n');
 
 debug.offsets_2nd = offsets;
 
