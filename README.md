@@ -4,6 +4,8 @@ PatchMatch
 PatchMatch algorithm for MATLAB. I referenced mostly [1].
 (not "generalized" version.)
 
+It is only for grayscale image! Modification of color image is future work.
+
 References
 -------
 

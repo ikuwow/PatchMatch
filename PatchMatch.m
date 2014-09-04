@@ -207,6 +207,7 @@ for ii = tsz(1):(-1):1
     %%%%%%%%%%%%%%%%%%%%%%
 
     % Caution!: Same As 1st Iteration
+
     iis_min = max(1+w,NNF(ii,jj,1)-radius);
     iis_max = min(NNF(ii,jj,1)+radius,ssz(1)-w);
     jjs_min = max(1+w,NNF(ii,jj,2)-radius);
