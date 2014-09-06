@@ -4,7 +4,13 @@ PatchMatch
 PatchMatch algorithm for MATLAB. I referenced mostly [1].
 (not "generalized" version.)
 
-It is only for grayscale image! Modification of color image is future work.
+It is only for grayscale image! Modification of color image is future work #3.
+
+.mex file (C++ codes) are not included. This is implemented for MATLAB only.
+Though .mex or C++ is much faster then MATLAB and PatchMatch algorithm is a little hard to parallelize,
+we have no intention of implementing in .mex or C++.
+
+
 
 References
 -------
