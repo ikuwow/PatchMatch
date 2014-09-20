@@ -40,7 +40,7 @@ sourceImg = double(sourceImg);
 max_iterations = 4;
 ssz = [size(sourceImg,1),size(sourceImg,2)];
 tsz = [size(targetImg,1),size(targetImg,2)];
-radius = ssz(1);
+radius = ssz(1)/2;
 alpha = .5;
 
 % min n s.t. r(alpha)^n < 1
@@ -197,11 +197,6 @@ for ii = ii_seq
 
         iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
         jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
-
-        while iis==NNF(ii,jj,1) && jjs==NNF(ii,jj,2) % Don't allow self-matching
-            iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
-            jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
-        end
 
         nns(:,itr_rs+2) = [iis,jjs];
 
