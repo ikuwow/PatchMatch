@@ -77,14 +77,15 @@ for ii = 1:tsz(1)
 end
 
 debug.offsets_ini = offsets;
+debug.NNF_ini = NNF;
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %--  1ST ITERATION  --%
 %%%%%%%%%%%%%%%%%%%%%%%
 disp('1st iteration (raster scan order) start!.');
-fprintf('0==========100\n'); % ten %s.
-fprintf(' '); % ten %s.
+fprintf('0%%          100%%\n >'); % ten %s.
 for ii = 1:tsz(1)
   for jj = 1:tsz(2)
 
@@ -151,7 +152,7 @@ for ii = 1:tsz(1)
     end
 
     if mod((ii-1)*tsz(2)+jj,floor(tsz(1)*tsz(2)/10))==0
-        fprintf('|')
+        fprintf('=')
     end
 
   end % jj
@@ -165,8 +166,7 @@ debug.offsets_1st = offsets;
 %--  2ND ITERATION  --%
 %%%%%%%%%%%%%%%%%%%%%%%
 disp('2nd iteration (reverse raster scan order) start!.');
-fprintf('0==========100\n'); % ten %s.
-fprintf(' '); % ten %s.
+fprintf('0%%          100%%\n >'); % ten %s.
 for ii = tsz(1):(-1):1
   for jj = tsz(2):(-1):1
 
@@ -233,7 +233,7 @@ for ii = tsz(1):(-1):1
     end
 
     if mod((ii-1)*tsz(2)+jj,floor(tsz(1)*tsz(2)/10))==0
-        fprintf('|')
+        fprintf('=')
     end
 
   end % jj
