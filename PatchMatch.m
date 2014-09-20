@@ -37,7 +37,7 @@ sourceImg = double(sourceImg);
 %%%%%%%%%%%%%%%%%%%%
 
 %% Parameters
-max_iterations = 8; % it must be odd
+max_iterations = 8;
 radius = 8;
 % numItr = 1;
 % alpha = .5;
@@ -102,7 +102,7 @@ else % even
     % neighbor_dest = +1;
 end
 
-fprintf('0%%          100%%\n >'); % ten %s.
+fprintf('0%%----------100%%\n >'); % ten %s.
 
 for ii = ii_seq
   for jj = jj_seq
