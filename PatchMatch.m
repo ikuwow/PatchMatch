@@ -182,31 +182,52 @@ for ii = ii_seq
     %--  RandomSearch  --%
     %%%%%%%%%%%%%%%%%%%%%%
 
-
     nns = zeros(2,lenRad+1);
     nns(:,1) = NNF(ii,jj,:);
     ofs = inf(lenRad+1,1);
     ofs(1) = offsets(ii,jj);
 
-    for itr_rs = 0:(lenRad-1)
-        % Radius = radius*alpha^itr_rs;
+    %{
+    % こちらのほうが遅い
+    iis_min = zeros(lenRad,1); iis_max = zeros(lenRad,1);
+    jjs_min = zeros(lenRad,1); jjs_max = zeros(lenRad,1);
 
-        iis_min = max(1+w,NNF(ii,jj,1)-Radius(itr_rs+1));
-        iis_max = min(NNF(ii,jj,1)+Radius(itr_rs+1),ssz(1)-w);
-        jjs_min = max(1+w,NNF(ii,jj,2)-Radius(itr_rs+1));
-        jjs_max = min(NNF(ii,jj,2)+Radius(itr_rs+1),ssz(2)-w);
+    for itr_rs = 1:lenRad
+        iis_min(itr_rs) = max(1+w,NNF(ii,jj,1)-Radius(itr_rs));
+        iis_max(itr_rs) = min(NNF(ii,jj,1)+Radius(itr_rs),ssz(1)-w);
+        jjs_min(itr_rs) = max(1+w,NNF(ii,jj,2)-Radius(itr_rs));
+        jjs_max(itr_rs) = min(NNF(ii,jj,2)+Radius(itr_rs),ssz(2)-w);
+    end
+
+    iis = floor(rand(lenRad,1).*(iis_max(:)-iis_min(:)+1)) + iis_min(:);
+    jjs = floor(rand(lenRad,1).*(jjs_max(:)-jjs_min(:)+1)) + jjs_min(:);
+
+    nns(:,2:lenRad+1) = [iis';jjs'];
+
+    for itr_rs = 1:lenRad
+        tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis(itr_rs)-w:iis(itr_rs)+w,jjs(itr_rs)-w:jjs(itr_rs)+w);
+        tmp2 = tmp1(~isnan(tmp1(:)));
+        ofs(itr_rs+1) = sum(tmp2.^2)/length(tmp2);
+    end
+    %}
+
+    for itr_rs = 1:lenRad
+
+        iis_min = max(1+w,NNF(ii,jj,1)-Radius(itr_rs));
+        iis_max = min(NNF(ii,jj,1)+Radius(itr_rs),ssz(1)-w);
+        jjs_min = max(1+w,NNF(ii,jj,2)-Radius(itr_rs));
+        jjs_max = min(NNF(ii,jj,2)+Radius(itr_rs),ssz(2)-w);
 
         iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
         jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
 
-        nns(:,itr_rs+2) = [iis,jjs];
+        nns(:,itr_rs+1) = [iis,jjs];
 
         tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis-w:iis+w,jjs-w:jjs+w);
         tmp2 = tmp1(~isnan(tmp1(:)));
-
-        ofs(itr_rs+2) = sum(tmp2.^2)/length(tmp2);
-
+        ofs(itr_rs+1) = sum(tmp2.^2)/length(tmp2);
     end
+    %}
 
     [~,idx] = min(ofs);
     offsets(ii,jj) = ofs(idx);

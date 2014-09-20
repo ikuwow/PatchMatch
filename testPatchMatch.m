@@ -33,7 +33,8 @@ fprintf('Reconstructing Initial NNF Image... ');
 reconstImg_ini = zeros(size(inImg));
 for ii = (1+w):psz:size(inImg,1)-w
     for jj = (1+w):psz:size(inImg,2)-w
-        reconstImg_ini(ii-w:ii+w,jj-w:jj+w) = srcImg(debug.NNF_ini(ii,jj,1)-w:debug.NNF_ini(ii,jj,1)+w,debug.NNF_ini(ii,jj,2)-w:debug.NNF_ini(ii,jj,2)+w);
+        reconstImg_ini(ii-w:ii+w,jj-w:jj+w)...
+            = srcImg(debug.NNF_ini(ii,jj,1)-w:debug.NNF_ini(ii,jj,1)+w,debug.NNF_ini(ii,jj,2)-w:debug.NNF_ini(ii,jj,2)+w);
     end
 end
 fprintf('Done!\n');
