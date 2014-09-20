@@ -44,8 +44,9 @@ radius = ssz(1)/2;
 alpha = .5;
 
 % min n s.t. r(alpha)^n < 1
-total_itr_rs = -floor(log(radius)/log(alpha));
-Radius = round(radius*alpha.^(0:total_itr_rs));
+% total_itr_rs = -floor(log(radius)/log(alpha));
+Radius = round(radius*alpha.^(0:(-floor(log(radius)/log(alpha)))));
+lenRad = length(Radius);
 
 
 
@@ -182,12 +183,12 @@ for ii = ii_seq
     %%%%%%%%%%%%%%%%%%%%%%
 
 
-    nns = zeros(2,total_itr_rs+2);
+    nns = zeros(2,lenRad+1);
     nns(:,1) = NNF(ii,jj,:);
-    ofs = inf(total_itr_rs+2,1);
+    ofs = inf(lenRad+1,1);
     ofs(1) = offsets(ii,jj);
 
-    for itr_rs = 0:total_itr_rs
+    for itr_rs = 0:(lenRad-1)
         % Radius = radius*alpha^itr_rs;
 
         iis_min = max(1+w,NNF(ii,jj,1)-Radius(itr_rs+1));
