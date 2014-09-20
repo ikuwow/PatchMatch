@@ -80,6 +80,7 @@ debug.offsets_ini = offsets;
 debug.NNF_ini = NNF;
 
 
+for iteration = 1:2 
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %--  1ST ITERATION  --%
@@ -239,6 +240,8 @@ for ii = tsz(1):(-1):1
   end % jj
 end % ii
 fprintf('\nDone!\n');
+
+end
 
 debug.offsets_2nd = offsets;
 
