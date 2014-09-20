@@ -80,25 +80,28 @@ debug.offsets_ini = offsets;
 debug.NNF_ini = NNF;
 
 
-for iteration = 1:2 
-
 %%%%%%%%%%%%%%%%%%%%%%%%
 %--  MAIN ITERATION  --%
 %%%%%%%%%%%%%%%%%%%%%%%%
+for iteration = 1:2 
 
-disp('1st iteration (raster scan order) start!.');
-fprintf('0%%          100%%\n >'); % ten %s.
+is_odd = mod(iteration,2)==1;
+debug.is_odd = is_odd;
 
 %% raster scan or reverse raster scan
-if mod(iteration,2)==1 % odd
+if is_odd % odd
+    disp([iteration,'''s iteration (raster scan order) start!.']);
     ii_seq = 1:tsz(1);
     jj_seq = 1:tsz(2);
     % neighbor_dest = -1;
-elseif mod(iteration,2)==0 %even
+else % even
+    disp([iteration,'''s iteration (raster scan order) start!.']);
     ii_seq = tsz(1):(-1):1;
     jj_seq = tsz(2):(-1):1;
     % neighbor_dest = +1;
 end
+
+fprintf('0%%          100%%\n >'); % ten %s.
 
 
 for ii = ii_seq
@@ -110,22 +113,15 @@ for ii = ii_seq
     %--  Propagation  --%
     %%%%%%%%%%%%%%%%%%%%%
 
-            % center,      top, left
-    ofs = [offsets(ii,jj), Inf, Inf ];
-
-    if mod(iteration,2)==1 % odd
-        if ii-1>=1; ofs(2) = offsets(ii-1,jj); end
-        if jj-1>=1; ofs(3) = offsets(ii,jj-1); end
-    elseif mod(iteration,2)==0 %even
-        if ii+1<=tsz(1); ofs(2) = offsets(ii+1,jj); end
-        if jj+1<=tsz(2); ofs(3) = offsets(ii,jj+1); end
-    end
-
-    [~,idx] = min(ofs);
-
 
     %% propagate from top and left
-    if mod(iteration,2)==1 %odd
+    if is_odd %odd
+
+            % center,      top, left
+        ofs = [offsets(ii,jj), Inf, Inf ];
+        if ii-1>=1; ofs(2) = offsets(ii-1,jj); end
+        if jj-1>=1; ofs(3) = offsets(ii,jj-1); end
+        [~,idx] = min(ofs);
 
         % propagate from top
         if idx==2 && NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
@@ -147,7 +143,13 @@ for ii = ii_seq
         end
 
     %% propagate from bottom and right
-    elseif mod(iteration,2)==0 %even
+    else %even
+
+              % center,      bottom, right
+        ofs = [offsets(ii,jj), Inf, Inf ];
+        if ii+1<=tsz(1); ofs(2) = offsets(ii+1,jj); end
+        if jj+1<=tsz(2); ofs(3) = offsets(ii,jj+1); end
+        [~,idx] = min(ofs);
 
         % propagate from bottom
         if idx==2 && NNF(ii+1,jj,1)-1-w>=1 && NNF(ii+1,jj,2)-w>=1
@@ -208,7 +210,7 @@ fprintf('\nDone!\n');
 
 debug.offsets_1st = offsets;
 
-end
+end % iteration
 
 debug.offsets_2nd = offsets;
 
