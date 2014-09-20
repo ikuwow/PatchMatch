@@ -37,6 +37,7 @@ sourceImg = double(sourceImg);
 %%%%%%%%%%%%%%%%%%%%
 
 %% Parameters
+max_iterations = 8; % it must be odd
 radius = 8;
 % numItr = 1;
 % alpha = .5;
@@ -83,26 +84,25 @@ debug.NNF_ini = NNF;
 %%%%%%%%%%%%%%%%%%%%%%%%
 %--  MAIN ITERATION  --%
 %%%%%%%%%%%%%%%%%%%%%%%%
-for iteration = 1:2 
+for iteration = 1:max_iterations
 
 is_odd = mod(iteration,2)==1;
 debug.is_odd = is_odd;
 
 %% raster scan or reverse raster scan
 if is_odd % odd
-    disp([iteration,'''s iteration (raster scan order) start!.']);
+    disp([num2str(iteration),'th iteration (raster scan order) start!.']);
     ii_seq = 1:tsz(1);
     jj_seq = 1:tsz(2);
     % neighbor_dest = -1;
 else % even
-    disp([iteration,'''s iteration (raster scan order) start!.']);
+    disp([num2str(iteration),'th iteration (reverse raster scan order) start!.']);
     ii_seq = tsz(1):(-1):1;
     jj_seq = tsz(2):(-1):1;
     % neighbor_dest = +1;
 end
 
 fprintf('0%%          100%%\n >'); % ten %s.
-
 
 for ii = ii_seq
   for jj = jj_seq
@@ -206,12 +206,10 @@ for ii = ii_seq
 
   end % jj
 end % ii
-fprintf('\nDone!\n');
-
-debug.offsets_1st = offsets;
+fprintf('>\nDone!\n');
 
 end % iteration
 
-debug.offsets_2nd = offsets;
+debug.offsets = offsets;
 
 end % end of function
