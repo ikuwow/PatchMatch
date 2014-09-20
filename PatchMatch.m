@@ -37,12 +37,11 @@ sourceImg = double(sourceImg);
 %%%%%%%%%%%%%%%%%%%%
 
 %% Parameters
-max_iterations = 8;
-radius = 8;
-% numItr = 1;
-% alpha = .5;
+max_iterations = 4;
 ssz = [size(sourceImg,1),size(sourceImg,2)];
 tsz = [size(targetImg,1),size(targetImg,2)];
+radius = ssz(1);
+alpha = .5;
 
 
 if mod(psz,2)==1
@@ -170,39 +169,44 @@ for ii = ii_seq
             offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
         end
 
-    end    
+    end
 
 
     %%%%%%%%%%%%%%%%%%%%%%
     %--  RandomSearch  --%
     %%%%%%%%%%%%%%%%%%%%%%
 
-    iis_min = max(1+w,NNF(ii,jj,1)-radius);
-    iis_max = min(NNF(ii,jj,1)+radius,ssz(1)-w);
-    jjs_min = max(1+w,NNF(ii,jj,2)-radius);
-    jjs_max = min(NNF(ii,jj,2)+radius,ssz(2)-w);
+    itr_randomsearch = 0;
+    while radius*(alpha^itr_randomsearch) >= 1
+        Radius = radius*alpha^itr_randomsearch;
 
-    iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
-    jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
+        iis_min = max(1+w,NNF(ii,jj,1)-Radius);
+        iis_max = min(NNF(ii,jj,1)+Radius,ssz(1)-w);
+        jjs_min = max(1+w,NNF(ii,jj,2)-Radius);
+        jjs_max = min(NNF(ii,jj,2)+Radius,ssz(2)-w);
 
-    while iis==NNF(ii,jj,1) && jjs==NNF(ii,jj,2) % Don't allow self-matching
         iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
         jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
+
+        while iis==NNF(ii,jj,1) && jjs==NNF(ii,jj,2) % Don't allow self-matching
+            iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
+            jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
+        end
+
+        tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis-w:iis+w,jjs-w:jjs+w);
+        tmp2 = tmp1(~isnan(tmp1(:)));
+
+        ofs = sum(tmp2.^2)/length(tmp2);
+
+        if ofs < offsets(ii,jj) % if finds a more relevant patch
+            NNF(ii,jj,:) = [iis;jjs];
+            offsets(ii,jj) = ofs;
+        end
+
+        itr_randomsearch = itr_randomsearch + 1;
     end
 
-    tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis-w:iis+w,jjs-w:jjs+w);
-    tmp2 = tmp1(~isnan(tmp1(:)));
-
-    ofs = sum(tmp2.^2)/length(tmp2);
-
-    if ofs < offsets(ii,jj) % if finds a more relevant patch
-        NNF(ii,jj,:) = [iis;jjs];
-        offsets(ii,jj) = ofs;
-    end
-
-    if mod((ii-1)*tsz(2)+jj,floor(tsz(1)*tsz(2)/10))==0
-        fprintf('=')
-    end
+    if mod((ii-1)*tsz(2)+jj,floor(tsz(1)*tsz(2)/10))==0; fprintf('='); end
 
   end % jj
 end % ii
