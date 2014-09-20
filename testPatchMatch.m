@@ -9,7 +9,7 @@ mkdir('results',SaveFolderName);
 
 diary(fullfile('results',SaveFolderName,'log.txt'));
 
-InputImageName = 'lena.bmp'
+InputImageName = 'barbara.bmp'
 SourceImageName = 'barbara.bmp'
 
 inImg = rgb2gray(imread(InputImageName));
