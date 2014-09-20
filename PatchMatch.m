@@ -43,6 +43,11 @@ tsz = [size(targetImg,1),size(targetImg,2)];
 radius = ssz(1);
 alpha = .5;
 
+% min n s.t. r(alpha)^n < 1
+total_itr_rs = -floor(log(radius)/log(alpha));
+Radius = round(radius*alpha.^(0:total_itr_rs));
+
+
 
 if mod(psz,2)==1
     w = (psz-1)/2;
@@ -177,21 +182,18 @@ for ii = ii_seq
     %%%%%%%%%%%%%%%%%%%%%%
 
 
-    % min n s.t. r(alpha)^n < 1
-    total_itr_rs = -floor(log(radius)/log(alpha));
-
     nns = zeros(2,total_itr_rs+2);
     nns(:,1) = NNF(ii,jj,:);
     ofs = inf(total_itr_rs+2,1);
     ofs(1) = offsets(ii,jj);
 
-    for itr_randomsearch = 0:total_itr_rs
-        Radius = radius*alpha^itr_randomsearch;
+    for itr_rs = 0:total_itr_rs
+        % Radius = radius*alpha^itr_rs;
 
-        iis_min = max(1+w,NNF(ii,jj,1)-Radius);
-        iis_max = min(NNF(ii,jj,1)+Radius,ssz(1)-w);
-        jjs_min = max(1+w,NNF(ii,jj,2)-Radius);
-        jjs_max = min(NNF(ii,jj,2)+Radius,ssz(2)-w);
+        iis_min = max(1+w,NNF(ii,jj,1)-Radius(itr_rs+1));
+        iis_max = min(NNF(ii,jj,1)+Radius(itr_rs+1),ssz(1)-w);
+        jjs_min = max(1+w,NNF(ii,jj,2)-Radius(itr_rs+1));
+        jjs_max = min(NNF(ii,jj,2)+Radius(itr_rs+1),ssz(2)-w);
 
         iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
         jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
@@ -201,12 +203,12 @@ for ii = ii_seq
             jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
         end
 
-        nns(:,itr_randomsearch+2) = [iis,jjs];
+        nns(:,itr_rs+2) = [iis,jjs];
 
         tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis-w:iis+w,jjs-w:jjs+w);
         tmp2 = tmp1(~isnan(tmp1(:)));
 
-        ofs(itr_randomsearch+2) = sum(tmp2.^2)/length(tmp2);
+        ofs(itr_rs+2) = sum(tmp2.^2)/length(tmp2);
 
     end
 
