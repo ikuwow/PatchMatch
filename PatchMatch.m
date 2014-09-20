@@ -176,8 +176,16 @@ for ii = ii_seq
     %--  RandomSearch  --%
     %%%%%%%%%%%%%%%%%%%%%%
 
-    itr_randomsearch = 0;
-    while radius*(alpha^itr_randomsearch) >= 1
+
+    % min n s.t. r(alpha)^n < 1
+    total_itr_rs = -floor(log(radius)/log(alpha));
+
+    nns = zeros(2,total_itr_rs+2);
+    nns(:,1) = NNF(ii,jj,:);
+    ofs = inf(total_itr_rs+2,1);
+    ofs(1) = offsets(ii,jj);
+
+    for itr_randomsearch = 0:total_itr_rs
         Radius = radius*alpha^itr_randomsearch;
 
         iis_min = max(1+w,NNF(ii,jj,1)-Radius);
@@ -193,18 +201,19 @@ for ii = ii_seq
             jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
         end
 
+        nns(:,itr_randomsearch+2) = [iis,jjs];
+
         tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis-w:iis+w,jjs-w:jjs+w);
         tmp2 = tmp1(~isnan(tmp1(:)));
 
-        ofs = sum(tmp2.^2)/length(tmp2);
+        ofs(itr_randomsearch+2) = sum(tmp2.^2)/length(tmp2);
 
-        if ofs < offsets(ii,jj) % if finds a more relevant patch
-            NNF(ii,jj,:) = [iis;jjs];
-            offsets(ii,jj) = ofs;
-        end
-
-        itr_randomsearch = itr_randomsearch + 1;
     end
+
+    [~,idx] = min(ofs);
+    offsets(ii,jj) = ofs(idx);
+    NNF(ii,jj,:) = nns(:,idx);
+    
 
     if mod((ii-1)*tsz(2)+jj,floor(tsz(1)*tsz(2)/10))==0; fprintf('='); end
 
