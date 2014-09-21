@@ -40,7 +40,7 @@ sourceImg = double(sourceImg);
 max_iterations = 4;
 ssz = [size(sourceImg,1),size(sourceImg,2)];
 tsz = [size(targetImg,1),size(targetImg,2)];
-radius = ssz(1)/2;
+radius = ssz(1)/4;
 alpha = .5;
 
 % min n s.t. r(alpha)^n < 1
@@ -213,7 +213,6 @@ for ii = ii_seq
         tmp2 = tmp1(~isnan(tmp1(:)));
         ofs_rs(itr_rs+1) = sum(tmp2.^2)/length(tmp2);
     end
-    %}
 
     [~,idx] = min(ofs_rs);
     offsets(ii,jj) = ofs_rs(idx);
