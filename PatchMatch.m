@@ -25,7 +25,7 @@ function [NNF, debug] = PatchMatch(targetImg, sourceImg, psz)
 % set psz to default
 if (nargin<3); psz = 9; end
 
-% grayscale images only (TODO: extend to color images)
+% grayscale images only (FUTURETODO: extend to color images)
 if ~ismatrix(targetImg); targetImg = rgb2gray(targetImg); end
 if ~ismatrix(sourceImg); sourceImg = rgb2gray(sourceImg); end
 
@@ -37,7 +37,7 @@ sourceImg = double(sourceImg);
 %%%%%%%%%%%%%%%%%%%%
 
 %% Parameters
-max_iterations = 4;
+max_iterations = 2;
 ssz = [size(sourceImg,1),size(sourceImg,2)];
 tsz = [size(targetImg,1),size(targetImg,2)];
 radius = ssz(1)/4;
@@ -56,6 +56,7 @@ else
     error('psz must be odd.');
 end
 
+% TODO: dont use targetImg_NaN
 targetImg_NaN = nan(tsz(1)+2*w,tsz(2)+2*w);
 targetImg_NaN(1+w:tsz(1)+w,1+w:tsz(2)+w) = targetImg;
 
@@ -67,8 +68,8 @@ NNF = cat(3,...
 
 % initialize offsets (what a redundant code...)
 % need not calcurate offset in advance? => anyway, implement!
+% TODO: do not map to patches containing NaN (missing region)
 fprintf('Initalizing... ');
-% tPatch = zeros(psz);
 offsets = inf(tsz(1),tsz(2));
 for ii = 1:tsz(1)
   for jj = 1:tsz(2)
@@ -112,7 +113,7 @@ debug.dispProgress = dispProgress;
 for ii = ii_seq
   for jj = jj_seq
 
-    % TODO: if offset(ii,jj) is lower than predefined threshold, continue.
+    % FUTURETODO: if offset(ii,jj) is lower than predefined threshold, continue.
 
     %%%%%%%%%%%%%%%%%%%%%
     %--  Propagation  --%
@@ -127,6 +128,10 @@ for ii = ii_seq
         ofs_prp(2) = offsets(max(1,ii-1),jj);
         ofs_prp(3) = offsets(ii,max(1,jj-1));
         [~,idx] = min(ofs_prp);
+
+        % TODO: if patch centered at (ii,jj) is totally blank,
+        %       select offset(ii-1,jj) or offset(ii,jj-1) with propagation factor 1.02
+        %       EX. offset(ii,jj) = pf*offset(ii-1,jj)
 
         % propagate from top
         switch idx
