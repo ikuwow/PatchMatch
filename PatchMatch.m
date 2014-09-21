@@ -96,15 +96,17 @@ is_odd = mod(iteration,2)==1;
 %% raster scan or reverse raster scan
 if is_odd % odd
     disp([num2str(iteration),'th iteration (raster scan order) start!.']);
-    ii_seq = 1:tsz(1);
-    jj_seq = 1:tsz(2);
+    ii_seq = 1:tsz(1); jj_seq = 1:tsz(2);
 else % even
     disp([num2str(iteration),'th iteration (reverse raster scan order) start!.']);
-    ii_seq = tsz(1):(-1):1;
-    jj_seq = tsz(2):(-1):1;
+    ii_seq = tsz(1):(-1):1; jj_seq = tsz(2):(-1):1;
 end
 
 fprintf('0%%----------100%%\n >'); % ten %s.
+dispProgress = false(tsz(1)*tsz(2),1);
+dispInterval = floor(tsz(1)*tsz(2)/10);
+dispProgress(dispInterval:dispInterval:end) = true;
+debug.dispProgress = dispProgress;
 
 for ii = ii_seq
   for jj = jj_seq
@@ -179,7 +181,6 @@ for ii = ii_seq
     %--  RandomSearch  --%
     %%%%%%%%%%%%%%%%%%%%%%
 
-    % こちらのほうがほんのすこし遅い
     iis_min = max(1+w,NNF(ii,jj,1)-Radius(:));
     iis_max = min(NNF(ii,jj,1)+Radius(:),ssz(1)-w);
     jjs_min = max(1+w,NNF(ii,jj,2)-Radius(:));
@@ -199,35 +200,12 @@ for ii = ii_seq
     end
     %}
 
-    %% こちらのほうが早い
-    %{
-    nns = zeros(2,lenRad+1);
-    nns(:,1) = NNF(ii,jj,:);
-    ofs_rs = inf(lenRad+1,1);
-    ofs_rs(1) = offsets(ii,jj);
-    for itr_rs = 1:lenRad
-
-        iis_min = max(1+w,NNF(ii,jj,1)-Radius(itr_rs));
-        iis_max = min(NNF(ii,jj,1)+Radius(itr_rs),ssz(1)-w);
-        jjs_min = max(1+w,NNF(ii,jj,2)-Radius(itr_rs));
-        jjs_max = min(NNF(ii,jj,2)+Radius(itr_rs),ssz(2)-w);
-
-        iis = floor(rand*(iis_max-iis_min+1)) + iis_min;
-        jjs = floor(rand*(jjs_max-jjs_min+1)) + jjs_min;
-
-        nns(:,itr_rs+1) = [iis,jjs];
-
-        tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis-w:iis+w,jjs-w:jjs+w);
-        tmp2 = tmp1(~isnan(tmp1(:)));
-        ofs_rs(itr_rs+1) = sum(tmp2.^2)/length(tmp2);
-    end
-    %}
-
     [~,idx] = min(ofs_rs);
     offsets(ii,jj) = ofs_rs(idx);
     NNF(ii,jj,:) = nns(:,idx);
 
-    if mod((ii-1)*tsz(2)+jj,floor(tsz(1)*tsz(2)/10))==0; fprintf('='); end
+    % if mod((ii-1)*tsz(2)+jj,floor(tsz(1)*tsz(2)/10))==0; fprintf('='); end
+    if dispProgress((ii-1)*tsz(2)+jj); fprintf('='); end
 
   end % jj
 end % ii
