@@ -92,19 +92,16 @@ debug.NNF_ini = NNF;
 for iteration = 1:max_iterations
 
 is_odd = mod(iteration,2)==1;
-debug.is_odd = is_odd;
 
 %% raster scan or reverse raster scan
 if is_odd % odd
     disp([num2str(iteration),'th iteration (raster scan order) start!.']);
     ii_seq = 1:tsz(1);
     jj_seq = 1:tsz(2);
-    % neighbor_dest = -1;
 else % even
     disp([num2str(iteration),'th iteration (reverse raster scan order) start!.']);
     ii_seq = tsz(1):(-1):1;
     jj_seq = tsz(2):(-1):1;
-    % neighbor_dest = +1;
 end
 
 fprintf('0%%----------100%%\n >'); % ten %s.
@@ -182,28 +179,19 @@ for ii = ii_seq
     %--  RandomSearch  --%
     %%%%%%%%%%%%%%%%%%%%%%
 
-    nns = zeros(2,lenRad+1);
-    nns(:,1) = NNF(ii,jj,:);
-    ofs = inf(lenRad+1,1);
-    ofs(1) = offsets(ii,jj);
-
-    %{
-    % こちらのほうが遅い
-    iis_min = zeros(lenRad,1); iis_max = zeros(lenRad,1);
-    jjs_min = zeros(lenRad,1); jjs_max = zeros(lenRad,1);
-
-    for itr_rs = 1:lenRad
-        iis_min(itr_rs) = max(1+w,NNF(ii,jj,1)-Radius(itr_rs));
-        iis_max(itr_rs) = min(NNF(ii,jj,1)+Radius(itr_rs),ssz(1)-w);
-        jjs_min(itr_rs) = max(1+w,NNF(ii,jj,2)-Radius(itr_rs));
-        jjs_max(itr_rs) = min(NNF(ii,jj,2)+Radius(itr_rs),ssz(2)-w);
-    end
+    % こちらのほうがほんのすこし遅い
+    iis_min = max(1+w,NNF(ii,jj,1)-Radius(:));
+    iis_max = min(NNF(ii,jj,1)+Radius(:),ssz(1)-w);
+    jjs_min = max(1+w,NNF(ii,jj,2)-Radius(:));
+    jjs_max = min(NNF(ii,jj,2)+Radius(:),ssz(2)-w);
 
     iis = floor(rand(lenRad,1).*(iis_max(:)-iis_min(:)+1)) + iis_min(:);
     jjs = floor(rand(lenRad,1).*(jjs_max(:)-jjs_min(:)+1)) + jjs_min(:);
 
+    nns(:,1) = NNF(ii,jj,:);
     nns(:,2:lenRad+1) = [iis';jjs'];
 
+    ofs(1) = offsets(ii,jj);
     for itr_rs = 1:lenRad
         tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis(itr_rs)-w:iis(itr_rs)+w,jjs(itr_rs)-w:jjs(itr_rs)+w);
         tmp2 = tmp1(~isnan(tmp1(:)));
@@ -211,6 +199,12 @@ for ii = ii_seq
     end
     %}
 
+    %% こちらのほうが早い
+    %{
+    nns = zeros(2,lenRad+1);
+    nns(:,1) = NNF(ii,jj,:);
+    ofs = inf(lenRad+1,1);
+    ofs(1) = offsets(ii,jj);
     for itr_rs = 1:lenRad
 
         iis_min = max(1+w,NNF(ii,jj,1)-Radius(itr_rs));
@@ -232,7 +226,6 @@ for ii = ii_seq
     [~,idx] = min(ofs);
     offsets(ii,jj) = ofs(idx);
     NNF(ii,jj,:) = nns(:,idx);
-    
 
     if mod((ii-1)*tsz(2)+jj,floor(tsz(1)*tsz(2)/10))==0; fprintf('='); end
 
