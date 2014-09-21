@@ -73,11 +73,11 @@ offsets = inf(tsz(1),tsz(2));
 for ii = 1:tsz(1)
   for jj = 1:tsz(2)
 
-    ofs = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
+    ofs_ini = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
           - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
 
-    ofs = ofs(~isnan(ofs(:)));
-    offsets(ii,jj) = sum(ofs.^2)/length(ofs);
+    ofs_ini = ofs_ini(~isnan(ofs_ini(:)));
+    offsets(ii,jj) = sum(ofs_ini.^2)/length(ofs_ini);
 
   end
 end
@@ -119,11 +119,11 @@ for ii = ii_seq
     %% propagate from top and left
     if is_odd %odd
 
-            % center,      top, left
-        ofs = [offsets(ii,jj), Inf, Inf ];
-        if ii-1>=1; ofs(2) = offsets(ii-1,jj); end
-        if jj-1>=1; ofs(3) = offsets(ii,jj-1); end
-        [~,idx] = min(ofs);
+        % center, top, left
+        ofs_prp(1) = offsets(ii,jj);
+        ofs_prp(2) = offsets(max(1,ii-1),jj);
+        ofs_prp(3) = offsets(ii,max(1,jj-1));
+        [~,idx] = min(ofs_prp);
 
         % propagate from top
         if idx==2 && NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
@@ -147,11 +147,11 @@ for ii = ii_seq
     %% propagate from bottom and right
     else %even
 
-              % center,      bottom, right
-        ofs = [offsets(ii,jj), Inf, Inf ];
-        if ii+1<=tsz(1); ofs(2) = offsets(ii+1,jj); end
-        if jj+1<=tsz(2); ofs(3) = offsets(ii,jj+1); end
-        [~,idx] = min(ofs);
+        % center, bottom, right
+        ofs_prp(1) = offsets(ii,jj);
+        ofs_prp(2) = offsets(min(ii+1,tsz(1)),jj);
+        ofs_prp(3) = offsets(ii,min(jj+1,tsz(2)));
+        [~,idx] = min(ofs_prp);
 
         % propagate from bottom
         if idx==2 && NNF(ii+1,jj,1)-1-w>=1 && NNF(ii+1,jj,2)-w>=1
@@ -191,11 +191,11 @@ for ii = ii_seq
     nns(:,1) = NNF(ii,jj,:);
     nns(:,2:lenRad+1) = [iis';jjs'];
 
-    ofs(1) = offsets(ii,jj);
+    ofs_rs(1) = offsets(ii,jj);
     for itr_rs = 1:lenRad
         tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis(itr_rs)-w:iis(itr_rs)+w,jjs(itr_rs)-w:jjs(itr_rs)+w);
         tmp2 = tmp1(~isnan(tmp1(:)));
-        ofs(itr_rs+1) = sum(tmp2.^2)/length(tmp2);
+        ofs_rs(itr_rs+1) = sum(tmp2.^2)/length(tmp2);
     end
     %}
 
@@ -203,8 +203,8 @@ for ii = ii_seq
     %{
     nns = zeros(2,lenRad+1);
     nns(:,1) = NNF(ii,jj,:);
-    ofs = inf(lenRad+1,1);
-    ofs(1) = offsets(ii,jj);
+    ofs_rs = inf(lenRad+1,1);
+    ofs_rs(1) = offsets(ii,jj);
     for itr_rs = 1:lenRad
 
         iis_min = max(1+w,NNF(ii,jj,1)-Radius(itr_rs));
@@ -219,12 +219,12 @@ for ii = ii_seq
 
         tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis-w:iis+w,jjs-w:jjs+w);
         tmp2 = tmp1(~isnan(tmp1(:)));
-        ofs(itr_rs+1) = sum(tmp2.^2)/length(tmp2);
+        ofs_rs(itr_rs+1) = sum(tmp2.^2)/length(tmp2);
     end
     %}
 
-    [~,idx] = min(ofs);
-    offsets(ii,jj) = ofs(idx);
+    [~,idx] = min(ofs_rs);
+    offsets(ii,jj) = ofs_rs(idx);
     NNF(ii,jj,:) = nns(:,idx);
 
     if mod((ii-1)*tsz(2)+jj,floor(tsz(1)*tsz(2)/10))==0; fprintf('='); end
