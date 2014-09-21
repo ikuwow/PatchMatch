@@ -40,7 +40,7 @@ sourceImg = double(sourceImg);
 max_iterations = 4;
 ssz = [size(sourceImg,1),size(sourceImg,2)];
 tsz = [size(targetImg,1),size(targetImg,2)];
-radius = ssz(1)/2;
+radius = ssz(1)/4;
 alpha = .5;
 
 % min n s.t. r(alpha)^n < 1
@@ -67,7 +67,7 @@ NNF = cat(3,...
 
 % initialize offsets (what a redundant code...)
 % need not calcurate offset in advance? => anyway, implement!
-disp('Initalizing...');
+fprintf('Initalizing... ');
 % tPatch = zeros(psz);
 offsets = inf(tsz(1),tsz(2));
 for ii = 1:tsz(1)
@@ -81,6 +81,7 @@ for ii = 1:tsz(1)
 
   end
 end
+fprintf('Done.\n');
 
 debug.offsets_ini = offsets;
 debug.NNF_ini = NNF;
@@ -128,22 +129,29 @@ for ii = ii_seq
         [~,idx] = min(ofs_prp);
 
         % propagate from top
-        if idx==2 && NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
-            NNF(ii,jj,:) = NNF(ii-1,jj,:);
-            NNF(ii,jj,1) = NNF(ii,jj,1)+1;
-            tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
-                  - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-            tmp = tmp(~isnan(tmp(:)));
-            offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+        switch idx
+        case 2
+            if NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
+            % if idx==2 && NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
+                NNF(ii,jj,:) = NNF(ii-1,jj,:);
+                NNF(ii,jj,1) = NNF(ii,jj,1)+1;
+                tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
+                      - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+                tmp = tmp(~isnan(tmp(:)));
+                offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+            end
 
         % propagate from left
-        elseif idx==3 && NNF(ii,jj-1,1)<=ssz(1) && NNF(ii,jj-1,2)+1+w<=ssz(2)
-            NNF(ii,jj,:) = NNF(ii,jj-1,:);
-            NNF(ii,jj,2) = NNF(ii,jj,2)+1;
-            tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
-                  - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-            tmp = tmp(~isnan(tmp(:)));
-            offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+        case 3
+            % elseif idx==3 && NNF(ii,jj-1,1)<=ssz(1) && NNF(ii,jj-1,2)+1+w<=ssz(2)
+            if NNF(ii,jj-1,1)<=ssz(1) && NNF(ii,jj-1,2)+1+w<=ssz(2)
+                NNF(ii,jj,:) = NNF(ii,jj-1,:);
+                NNF(ii,jj,2) = NNF(ii,jj,2)+1;
+                tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
+                      - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+                tmp = tmp(~isnan(tmp(:)));
+                offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+            end
         end
 
     %% propagate from bottom and right
@@ -156,22 +164,29 @@ for ii = ii_seq
         [~,idx] = min(ofs_prp);
 
         % propagate from bottom
-        if idx==2 && NNF(ii+1,jj,1)-1-w>=1 && NNF(ii+1,jj,2)-w>=1
-            NNF(ii,jj,:) = NNF(ii+1,jj,:);
-            NNF(ii,jj,1) = NNF(ii,jj,1)-1;
-            tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
-                  - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-            tmp = tmp(~isnan(tmp(:)));
-            offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
-    
-        % propagate from right
-        elseif idx==3 && NNF(ii,jj+1,1)-w>=1 && NNF(ii,jj+1,2)-1-w>=1
-            NNF(ii,jj,:) = NNF(ii,jj+1,:);
-            NNF(ii,jj,2) = NNF(ii,jj,2)-1;
-            tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
-                  - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-            tmp = tmp(~isnan(tmp(:)));
-            offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+        switch idx
+        case 2
+            if idx==2 && NNF(ii+1,jj,1)-1-w>=1 && NNF(ii+1,jj,2)-w>=1
+            % if idx==2 && NNF(ii+1,jj,1)-1-w>=1 && NNF(ii+1,jj,2)-w>=1
+                NNF(ii,jj,:) = NNF(ii+1,jj,:);
+                NNF(ii,jj,1) = NNF(ii,jj,1)-1;
+                tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
+                      - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+                tmp = tmp(~isnan(tmp(:)));
+                offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+            end
+
+            % propagate from right
+        case 3
+            if idx==3 && NNF(ii,jj+1,1)-w>=1 && NNF(ii,jj+1,2)-1-w>=1
+            % elseif idx==3 && NNF(ii,jj+1,1)-w>=1 && NNF(ii,jj+1,2)-1-w>=1
+                NNF(ii,jj,:) = NNF(ii,jj+1,:);
+                NNF(ii,jj,2) = NNF(ii,jj,2)-1;
+                tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
+                      - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+                tmp = tmp(~isnan(tmp(:)));
+                offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+            end
         end
 
     end
@@ -198,13 +213,11 @@ for ii = ii_seq
         tmp2 = tmp1(~isnan(tmp1(:)));
         ofs_rs(itr_rs+1) = sum(tmp2.^2)/length(tmp2);
     end
-    %}
 
     [~,idx] = min(ofs_rs);
     offsets(ii,jj) = ofs_rs(idx);
     NNF(ii,jj,:) = nns(:,idx);
 
-    % if mod((ii-1)*tsz(2)+jj,floor(tsz(1)*tsz(2)/10))==0; fprintf('='); end
     if dispProgress((ii-1)*tsz(2)+jj); fprintf('='); end
 
   end % jj
