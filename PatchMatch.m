@@ -37,7 +37,7 @@ sourceImg = double(sourceImg);
 %%%%%%%%%%%%%%%%%%%%
 
 %% Parameters
-max_iterations = 4;
+max_iterations = 2;
 ssz = [size(sourceImg,1),size(sourceImg,2)];
 tsz = [size(targetImg,1),size(targetImg,2)];
 radius = ssz(1)/4;
