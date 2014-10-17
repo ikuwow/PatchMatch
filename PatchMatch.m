@@ -23,12 +23,17 @@
 % - debug           : debugging information.
 %
 %
-function [NNF, debug] = PatchMatch(targetImg, sourceImg, psz, mask)
+function [NNF, debug] = PatchMatch(targetImg, sourceImg, psz, varargin)
 
 % set psz to default
 if (nargin<3); psz = 9; end
 
-if nargin==4; disp('Inpainting Mode.'); end
+if nargin==4
+    disp('Inpainting Mode.');
+    mask = varargin{1};
+elseif nargin>5
+    error('Too many input arguments.');
+end
 
 if isempty(targetImg)
     error('targetImg must be defined! (sourceImg is allowed to be empty)');
@@ -77,16 +82,16 @@ targetImg_NaN(1+w:tsz(1)+w,1+w:tsz(2)+w) = targetImg;
 
 
 %% Computes Valid Center pixels
-if ~isempty(mask)
-validCenter = ones(size(targetImg));
+if exist('mask','var') && ~isempty(mask)
+validCenters = ones(size(targetImg));
 for ii = 1:tsz(1)
   for jj =  1:tsz(2)
       if mask(ii,jj) == 0
-          validCenter(max(1,ii-w):min(tsz(1),ii+w),max(1,jj-w):min(tsz(2),jj+w)) = 0;
+          validCenters(max(1,ii-w):min(tsz(1),ii+w),max(1,jj-w):min(tsz(2),jj+w)) = 0;
       end
   end
 end
-debug.validCenter = validCenter;
+debug.validCenters = validCenters;
 end
 
 % NNF indices whose patches do not lap over outer range of images
@@ -115,7 +120,6 @@ fprintf('Done.\n');
 
 debug.offsets_ini = offsets;
 debug.NNF_ini = NNF;
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %--  MAIN ITERATION  --%
@@ -256,6 +260,7 @@ end % ii
 fprintf('>\nDone!\n');
 
 end % iteration
+
 
 debug.offsets = offsets;
 

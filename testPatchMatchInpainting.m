@@ -18,7 +18,7 @@ InputImageName = 'lena.bmp'
 inImg = rgb2gray(imread(InputImageName));
 
 mask = load('~/Documents/MATLAB/AutoShared/testimages/mask512.mat');
-mask = mask.text;
+mask = mask.line;
 mask(mask>0) = 1;
 
 [NNF, debug] = PatchMatch(inImg, [], psz, mask);
