@@ -52,7 +52,7 @@ fprintf('Done!\n');
 
 reconstImg = uint8(reconstImg);
 reconstImg_ini = uint8(reconstImg_ini);
-PSNRs = PSNR(double(reconstImg),double(inImg),255);
+PSNRs = imgPSNR(reconstImg,inImg);
 fprintf('PSNR is %.4f\n',PSNRs);
 figure(1),imshow(reconstImg);
 
