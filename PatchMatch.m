@@ -75,6 +75,20 @@ end
 targetImg_NaN = nan(tsz(1)+2*w,tsz(2)+2*w);
 targetImg_NaN(1+w:tsz(1)+w,1+w:tsz(2)+w) = targetImg;
 
+
+%% Computes Valid Center pixels
+if ~isempty(mask)
+validCenter = ones(size(targetImg));
+for ii = 1:tsz(1)
+  for jj =  1:tsz(2)
+      if mask(ii,jj) == 0
+          validCenter(max(1,ii-w):min(tsz(1),ii+w),max(1,jj-w):min(tsz(2),jj+w)) = 0;
+      end
+  end
+end
+debug.validCenter = validCenter;
+end
+
 % NNF indices whose patches do not lap over outer range of images
 NNF = cat(3,...
     randi([1+w,ssz(1)-w],tsz),...
@@ -238,6 +252,7 @@ for ii = ii_seq
 
   end % jj
 end % ii
+
 fprintf('>\nDone!\n');
 
 end % iteration
