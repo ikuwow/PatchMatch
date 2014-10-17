@@ -10,27 +10,43 @@
 % Usage: [NNF, debug] = PatchMatch(targetImg, sourceImg, psz)
 % 
 % Inputs: 
-% - targetImg: An image (usually masked by NaN. NaN is lost domain)
-% - sourceImg: An image from which patches are extracted, same size as targetImg.
-% - psz: patch size (psz x psz). Default is 9. 
+% - targetImg       : An image (usually masked by NaN. NaN is lost domain)
+% - sourceImg       : An image from which patches are extracted, same size as targetImg.
+% - psz             : patch size (psz x psz). Default is 9.
+% - mask (optional) : (uint8, double or any type) indicates misssing region. 0 denotes missing region.
+%                     and must be same size as input images.
+%                     If mask is inputted, this program works as inpainting mode, and only targetImg is used.
 % 
 % Outputs:
-% - NNF: Nearest Neighbor Field, which contains indices of sourceImg for 
-%        each corresponding indices of targetImg
-% - debug: debugging information.
+% - NNF             : Nearest Neighbor Field, which contains indices of sourceImg for 
+%                     each corresponding indices of targetImg.
+% - debug           : debugging information.
 %
-
-function [NNF, debug] = PatchMatch(targetImg, sourceImg, psz)
+%
+function [NNF, debug] = PatchMatch(targetImg, sourceImg, psz, mask)
 
 % set psz to default
 if (nargin<3); psz = 9; end
 
-% grayscale images only (TODO: extend to color images)
-if ~ismatrix(targetImg); targetImg = rgb2gray(targetImg); end
-if ~ismatrix(sourceImg); sourceImg = rgb2gray(sourceImg); end
+if nargin==4; disp('Inpainting Mode.'); end
 
-targetImg = double(targetImg);
-sourceImg = double(sourceImg);
+if isempty(targetImg)
+    error('targetImg must be defined! (sourceImg is allowed to be empty)');
+end
+
+if isempty(sourceImg)
+    if ~ismatrix(targetImg); targetImg = rgb2gray(targetImg); end
+    targetImg = double(targetImg);
+    sourceImg = targetImg;
+else
+    % grayscale images only (TODO: extend to color images)
+    if ~ismatrix(targetImg); targetImg = rgb2gray(targetImg); end
+    if ~ismatrix(sourceImg); sourceImg = rgb2gray(sourceImg); end
+    targetImg = double(targetImg);
+    sourceImg = double(sourceImg);
+end
+
+
 
 %%%%%%%%%%%%%%%%%%%%
 %--  Initialize  --%
