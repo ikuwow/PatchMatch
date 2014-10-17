@@ -28,9 +28,11 @@ function [NNF, debug] = PatchMatch(targetImg, sourceImg, psz, varargin)
 % set psz to default
 if (nargin<3); psz = 9; end
 
+isInpaintingMode = false;
 if nargin==4
     disp('Inpainting Mode.');
     mask = varargin{1};
+    isInpaintingMode = true;
 elseif nargin>5
     error('Too many input arguments.');
 end
@@ -82,17 +84,21 @@ targetImg_NaN(1+w:tsz(1)+w,1+w:tsz(2)+w) = targetImg;
 
 
 %% Computes Valid Center pixels
-if exist('mask','var') && ~isempty(mask)
 validCenters = ones(size(targetImg));
-for ii = 1:tsz(1)
-  for jj =  1:tsz(2)
-      if mask(ii,jj) == 0
+validCenters(1:w,:) = 0; validCenters(tsz(1)-w+1:tsz(1),:) = 0;
+validCenters(:,1:w) = 0; validCenters(:,tsz(2)-w+1:tsz(2)) = 0;
+
+if isInpaintingMode
+    for ii = 1:tsz(1)
+      for jj =  1:tsz(2);
+        if mask(ii,jj) == 0
           validCenters(max(1,ii-w):min(tsz(1),ii+w),max(1,jj-w):min(tsz(2),jj+w)) = 0;
+        end
       end
-  end
+    end
 end
+
 debug.validCenters = validCenters;
-end
 
 % NNF indices whose patches do not lap over outer range of images
 NNF = cat(3,...
