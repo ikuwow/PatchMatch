@@ -24,6 +24,7 @@ mask(mask>0) = 1;
 [NNF, debug] = PatchMatch(inImg, [], psz, mask);
 disp('PatchMatch Inpainting Done!');
 
+%% NNF
 fprintf('Reconstructing Output Image... ');
 reconstImg = zeros(size(inImg),'uint8');
 for ii = (1+w):psz:size(inImg,1)-w
@@ -32,6 +33,15 @@ for ii = (1+w):psz:size(inImg,1)-w
     end
 end
 fprintf('Reconstruction Done!\n');
+
+%% NNF_ini
+fprintf('Reconstructing Output Image (NNF_ini)... ');
+reconstImg = zeros(size(inImg),'uint8');
+for ii = (1+w):psz:size(inImg,1)-w
+    for jj = (1+w):psz:size(inImg,2)-w
+        reconstImg(ii-w:ii+w,jj-w:jj+w) = inImg(debug.NNF_ini(ii,jj,1)-w:debug.NNF_ini(ii,jj,1)+w,debug.NNF_ini(ii,jj,2)-w:debug.NNF_ini(ii,jj,2)+w);
+    end
+end
 
 mask_ = mask;
 mask_(mask>0) = 1;

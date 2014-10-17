@@ -97,15 +97,23 @@ if isInpaintingMode
       end
     end
 end
-
+validCenters_ind = find(validCenters);
 debug.validCenters = validCenters;
 
 % NNF indices whose patches do not lap over outer range of images
-NNF = cat(3,...
-    randi([1+w,ssz(1)-w],tsz),...
-    randi([1+w,ssz(2)-w],tsz)...
-);
+% NNF = cat(3,...
+%     randi([1+w,ssz(1)-w],tsz),...
+%     randi([1+w,ssz(2)-w],tsz)...
+% );
 
+NNF = zeros(tsz(1),tsz(2),2);
+for ii = 1:tsz(1)
+  for jj = 1:tsz(2)
+      center = validCenters_ind(randi([1,length(validCenters_ind)]));
+      [x,y] = ind2sub(tsz,center);
+      NNF(ii,jj,1) = x; NNF(ii,jj,2) = y;
+  end
+end
 % initialize offsets (what a redundant code...)
 % need not calcurate offset in advance? => anyway, implement!
 fprintf('Initalizing... ');
