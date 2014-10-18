@@ -158,6 +158,9 @@ debug.dispProgress = dispProgress;
 for ii = ii_seq
   for jj = jj_seq
 
+      debug.ii = ii;
+      debug.jj = jj;
+
     % TODO: if offset(ii,jj) is lower than predefined threshold, continue.
 
     %%%%%%%%%%%%%%%%%%%%%
@@ -168,16 +171,32 @@ for ii = ii_seq
     %% propagate from top and left
     if is_odd %odd
 
+        % top NNF propagates 
+        if ii-1>=1
+            tnnf = [NNF(ii-1,jj,1)+1,NNF(ii-1,jj,2)];
+            topIsValid = validCenters(tnnf(1),tnnf(2))==1;
+        else
+            topIsValid = 0;
+        end
+
+        % left NNF propagates
+        if jj-1>=1
+            lnnf = [NNF(ii,jj-1,1),NNF(ii,jj-1,2)+1];
+            leftIsValid = validCenters(lnnf(1),lnnf(2))==1;
+        else
+            leftIsValid = 0;
+        end
+
         % center, top, left
         ofs_prp = inf(3,1);
         ofs_prp(1) = offsets(ii,jj);
-        if ii-1>1; ofs_prp(2) = offsets(ii-1,jj); end
+        if ii-1>1;ofs_prp(2) = offsets(ii-1,jj); end
         if jj-1>1; ofs_prp(3) = offsets(ii,jj-1); end
         [~,idx] = min(ofs_prp);
 
         % propagate from top
-        switch idx
-        case 2
+        if idx==2 && topIsValid
+
             if NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
             % if idx==2 && NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
                 NNF(ii,jj,:) = NNF(ii-1,jj,:);
@@ -189,7 +208,7 @@ for ii = ii_seq
             end
 
         % propagate from left
-        case 3
+        elseif ofs_prp(3)<ofs_prp(1) && leftIsValid
             % elseif idx==3 && NNF(ii,jj-1,1)<=ssz(1) && NNF(ii,jj-1,2)+1+w<=ssz(2)
             if NNF(ii,jj-1,1)<=ssz(1) && NNF(ii,jj-1,2)+1+w<=ssz(2)
                 NNF(ii,jj,:) = NNF(ii,jj-1,:);
@@ -204,6 +223,22 @@ for ii = ii_seq
     %% propagate from bottom and right
     else %even
 
+        % bottom NNF propagates
+        if ii+1<=tsz(1)
+            bnnf = [NNF(ii+1,jj,1)-1,NNF(ii+1,jj,2)];
+            bottomIsValid = validCenters(bnnf(1),tnnf(2))==1;
+        else
+            bottomIsValid = 0;
+        end
+
+        % right NNF propagates
+        if jj+1<=tsz(2)
+            rnnf = [NNF(ii,jj+1,1),NNF(ii,jj+1,2)-1];
+            rightIsValid = validCenters(rnnf(1),rnnf(2))==1;
+        else
+            rightIsValid = 0;
+        end
+
         % center, bottom, right
         ofs_prp = inf(3,1);
         ofs_prp(1) = offsets(ii,jj);
@@ -212,8 +247,7 @@ for ii = ii_seq
         [~,idx] = min(ofs_prp);
         
         % propagate from bottom
-        switch idx
-        case 2
+        if idx==2 && bottomIsValid
             if idx==2 && NNF(ii+1,jj,1)-1-w>=1 && NNF(ii+1,jj,2)-w>=1
             % if idx==2 && NNF(ii+1,jj,1)-1-w>=1 && NNF(ii+1,jj,2)-w>=1
                 NNF(ii,jj,:) = NNF(ii+1,jj,:);
@@ -224,8 +258,8 @@ for ii = ii_seq
                 offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
             end
 
-            % propagate from right
-        case 3
+        % propagate from right
+        elseif ofs_prp(3)<ofs_prp(1) && rightIsValid
             if idx==3 && NNF(ii,jj+1,1)-w>=1 && NNF(ii,jj+1,2)-1-w>=1
             % elseif idx==3 && NNF(ii,jj+1,1)-w>=1 && NNF(ii,jj+1,2)-1-w>=1
                 NNF(ii,jj,:) = NNF(ii,jj+1,:);
