@@ -73,17 +73,15 @@ lenRad = length(Radius);
 
 
 
-if mod(psz,2)==1
-    w = (psz-1)/2;
-else
-    error('psz must be odd.');
+if mod(psz,2)==1; w = (psz-1)/2;
+else error('psz must be odd.');
 end
 
 targetImg_NaN = nan(tsz(1)+2*w,tsz(2)+2*w);
 targetImg_NaN(1+w:tsz(1)+w,1+w:tsz(2)+w) = targetImg;
 
 
-%% Computes Valid Center pixels
+%% Computes Valid Center pixels ( 1 denotes valid)
 validCenters = ones(size(targetImg));
 validCenters(1:w,:) = 0; validCenters(tsz(1)-w+1:tsz(1),:) = 0;
 validCenters(:,1:w) = 0; validCenters(:,tsz(2)-w+1:tsz(2)) = 0;
@@ -171,9 +169,10 @@ for ii = ii_seq
     if is_odd %odd
 
         % center, top, left
+        ofs_prp = inf(3,1);
         ofs_prp(1) = offsets(ii,jj);
-        ofs_prp(2) = offsets(max(1,ii-1),jj);
-        ofs_prp(3) = offsets(ii,max(1,jj-1));
+        if ii-1>1; ofs_prp(2) = offsets(ii-1,jj); end
+        if jj-1>1; ofs_prp(3) = offsets(ii,jj-1); end
         [~,idx] = min(ofs_prp);
 
         % propagate from top
@@ -206,11 +205,12 @@ for ii = ii_seq
     else %even
 
         % center, bottom, right
+        ofs_prp = inf(3,1);
         ofs_prp(1) = offsets(ii,jj);
-        ofs_prp(2) = offsets(min(ii+1,tsz(1)),jj);
-        ofs_prp(3) = offsets(ii,min(jj+1,tsz(2)));
+        if ii+1<tsz(1); ofs_prp(2) = offsets(ii+1,jj); end
+        if jj+1<tsz(2); ofs_prp(3) = offsets(ii,jj+1); end
         [~,idx] = min(ofs_prp);
-
+        
         % propagate from bottom
         switch idx
         case 2
@@ -244,6 +244,8 @@ for ii = ii_seq
     %--  RandomSearch  --%
     %%%%%%%%%%%%%%%%%%%%%%
 
+    %{
+
     iis_min = max(1+w,NNF(ii,jj,1)-Radius(:));
     iis_max = min(NNF(ii,jj,1)+Radius(:),ssz(1)-w);
     jjs_min = max(1+w,NNF(ii,jj,2)-Radius(:));
@@ -265,6 +267,7 @@ for ii = ii_seq
     [~,idx] = min(ofs_rs);
     offsets(ii,jj) = ofs_rs(idx);
     NNF(ii,jj,:) = nns(:,idx);
+    %}
 
     if dispProgress((ii-1)*tsz(2)+jj); fprintf('='); end
 
