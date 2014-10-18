@@ -72,7 +72,6 @@ Radius = round(radius*alpha.^(0:(-floor(log(radius)/log(alpha)))));
 lenRad = length(Radius);
 
 
-
 if mod(psz,2)==1; w = (psz-1)/2;
 else error('psz must be odd.');
 end
@@ -88,7 +87,7 @@ validCenters(:,1:w) = 0; validCenters(:,tsz(2)-w+1:tsz(2)) = 0;
 
 if isInpaintingMode
     for ii = 1:tsz(1)
-      for jj =  1:tsz(2);
+      for jj =  1:tsz(2)
         if mask(ii,jj) == 0
           validCenters(max(1,ii-w):min(tsz(1),ii+w),max(1,jj-w):min(tsz(2),jj+w)) = 0;
         end
@@ -121,7 +120,7 @@ for ii = 1:tsz(1)
   for jj = 1:tsz(2)
 
     ofs_ini = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
-          - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+        - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
 
     ofs_ini = ofs_ini(~isnan(ofs_ini(:)));
     offsets(ii,jj) = sum(ofs_ini.^2)/length(ofs_ini);
@@ -158,8 +157,7 @@ debug.dispProgress = dispProgress;
 for ii = ii_seq
   for jj = jj_seq
 
-      debug.ii = ii;
-      debug.jj = jj;
+      debug.ii = ii; debug.jj = jj;
 
     % TODO: if offset(ii,jj) is lower than predefined threshold, continue.
 
