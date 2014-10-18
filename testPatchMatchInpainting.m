@@ -13,7 +13,7 @@ mkdir('results',SaveFolderName);
 
 diary(fullfile('results',SaveFolderName,'log.txt'));
 
-InputImageName = 'lena.bmp'
+InputImageName = 'lena.bmp';
 
 inImg = rgb2gray(imread(InputImageName));
 
@@ -21,6 +21,7 @@ mask = load('~/Documents/MATLAB/AutoShared/testimages/mask512.mat');
 mask = mask.line;
 mask(mask>0) = 1;
 
+%% MAIN (PatchMatch)
 [NNF, debug] = PatchMatch(inImg, [], psz, mask);
 disp('PatchMatch Inpainting Done!');
 
@@ -42,6 +43,7 @@ for ii = (1+w):psz:size(inImg,1)-w
         reconstImg(ii-w:ii+w,jj-w:jj+w) = inImg(debug.NNF_ini(ii,jj,1)-w:debug.NNF_ini(ii,jj,1)+w,debug.NNF_ini(ii,jj,2)-w:debug.NNF_ini(ii,jj,2)+w);
     end
 end
+fprintf('Reconstruction Done!\n');
 
 mask_ = mask;
 mask_(mask>0) = 1;
