@@ -53,8 +53,18 @@ mask_ = mask;
 mask_(mask>0) = 1;
 maskedImg = inImg.*mask;
 
+imwrite(reconstImg,fullfile('results',SaveFolderName,'reonstImg.bmp'),'BMP');
+
 figure(1),imshow(maskedImg);
 figure(2),imshow(reconstImg);
 figure(3),imshow(reconstImg_ini);
 
 diary off
+
+%% commands
+%{
+
+[bin, coord] = testNNFDoesNotUseMissingRegion(NNF,validCenters);
+
+%}
+

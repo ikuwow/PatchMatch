@@ -188,7 +188,7 @@ for ii = ii_seq
         % center, top, left
         ofs_prp = inf(3,1);
         ofs_prp(1) = offsets(ii,jj);
-        if ii-1>1;ofs_prp(2) = offsets(ii-1,jj); end
+        if ii-1>1; ofs_prp(2) = offsets(ii-1,jj); end
         if jj-1>1; ofs_prp(3) = offsets(ii,jj-1); end
         [~,idx] = min(ofs_prp);
 
@@ -224,7 +224,7 @@ for ii = ii_seq
         % bottom NNF propagates
         if ii+1<=tsz(1)
             bnnf = [NNF(ii+1,jj,1)-1,NNF(ii+1,jj,2)];
-            bottomIsValid = validCenters(bnnf(1),tnnf(2))==1;
+            bottomIsValid = validCenters(bnnf(1),bnnf(2))==1;
         else
             bottomIsValid = 0;
         end
