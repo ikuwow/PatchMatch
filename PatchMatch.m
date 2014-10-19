@@ -54,7 +54,6 @@ else
 end
 
 
-
 %%%%%%%%%%%%%%%%%%%%
 %--  Initialize  --%
 %%%%%%%%%%%%%%%%%%%%
@@ -97,11 +96,6 @@ end
 validCenters_ind = find(validCenters);
 debug.validCenters = validCenters;
 
-% NNF indices whose patches do not lap over outer range of images
-% NNF = cat(3,...
-%     randi([1+w,ssz(1)-w],tsz),...
-%     randi([1+w,ssz(2)-w],tsz)...
-% );
 
 NNF = zeros(tsz(1),tsz(2),2);
 for ii = 1:tsz(1)
@@ -194,27 +188,34 @@ for ii = ii_seq
 
         % propagate from top
         if idx==2 && topIsValid
-
             if NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
-            % if idx==2 && NNF(ii-1,jj,1)+1+w<=ssz(1) && NNF(ii-1,jj,2)+w<=ssz(2)
                 NNF(ii,jj,:) = NNF(ii-1,jj,:);
                 NNF(ii,jj,1) = NNF(ii,jj,1)+1;
-                tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
-                      - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-                tmp = tmp(~isnan(tmp(:)));
-                offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+
+                if sum(sum(mask(ii,jj)))==0 % if current patch is totally blank
+                    offsets(ii,jj) = 1.02*offsets(ii-1,jj);
+                else
+                    tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
+                          - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+                    tmp = tmp(~isnan(tmp(:)));
+                    offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+                end
             end
 
         % propagate from left
         elseif ofs_prp(3)<ofs_prp(1) && leftIsValid
-            % elseif idx==3 && NNF(ii,jj-1,1)<=ssz(1) && NNF(ii,jj-1,2)+1+w<=ssz(2)
             if NNF(ii,jj-1,1)<=ssz(1) && NNF(ii,jj-1,2)+1+w<=ssz(2)
                 NNF(ii,jj,:) = NNF(ii,jj-1,:);
                 NNF(ii,jj,2) = NNF(ii,jj,2)+1;
-                tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
-                      - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-                tmp = tmp(~isnan(tmp(:)));
-                offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+
+                if sum(sum(mask(ii,jj)))==0 % if current patch is totally blank
+                    offsets(ii,jj) = 1.02*offsets(ii,jj-1);
+                else
+                    tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
+                          - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+                    tmp = tmp(~isnan(tmp(:)));
+                    offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+                end
             end
         end
 
@@ -247,25 +248,33 @@ for ii = ii_seq
         % propagate from bottom
         if idx==2 && bottomIsValid
             if idx==2 && NNF(ii+1,jj,1)-1-w>=1 && NNF(ii+1,jj,2)-w>=1
-            % if idx==2 && NNF(ii+1,jj,1)-1-w>=1 && NNF(ii+1,jj,2)-w>=1
                 NNF(ii,jj,:) = NNF(ii+1,jj,:);
                 NNF(ii,jj,1) = NNF(ii,jj,1)-1;
-                tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
-                      - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-                tmp = tmp(~isnan(tmp(:)));
-                offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+
+                if sum(sum(mask(ii,jj)))==0 % if current patch is totally blank
+                    offsets(ii,jj) = 1.02*offsets(ii+1,jj);
+                else
+                    tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
+                          - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+                    tmp = tmp(~isnan(tmp(:)));
+                    offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+                end
             end
 
         % propagate from right
         elseif ofs_prp(3)<ofs_prp(1) && rightIsValid
             if idx==3 && NNF(ii,jj+1,1)-w>=1 && NNF(ii,jj+1,2)-1-w>=1
-            % elseif idx==3 && NNF(ii,jj+1,1)-w>=1 && NNF(ii,jj+1,2)-1-w>=1
                 NNF(ii,jj,:) = NNF(ii,jj+1,:);
                 NNF(ii,jj,2) = NNF(ii,jj,2)-1;
-                tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
-                      - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
-                tmp = tmp(~isnan(tmp(:)));
-                offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+
+                if sum(sum(mask(ii,jj)))==0 % if current patch is totally blank
+                    offsets(ii,jj) = 1.02*offsets(ii,jj+1);
+                else
+                    tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
+                          - sourceImg(NNF(ii,jj,1)-w:NNF(ii,jj,1)+w,NNF(ii,jj,2)-w:NNF(ii,jj,2)+w);
+                    tmp = tmp(~isnan(tmp(:)));
+                    offsets(ii,jj) = sum(tmp(:).^2)/length(tmp(:));
+                end
             end
         end
 
@@ -275,8 +284,6 @@ for ii = ii_seq
     %%%%%%%%%%%%%%%%%%%%%%
     %--  RandomSearch  --%
     %%%%%%%%%%%%%%%%%%%%%%
-
-    %{
 
     iis_min = max(1+w,NNF(ii,jj,1)-Radius(:));
     iis_max = min(NNF(ii,jj,1)+Radius(:),ssz(1)-w);
@@ -299,6 +306,31 @@ for ii = ii_seq
     [~,idx] = min(ofs_rs);
     offsets(ii,jj) = ofs_rs(idx);
     NNF(ii,jj,:) = nns(:,idx);
+    %}
+
+    % RandomSearchのやりなおし
+    % validCentersのみからとってくる
+
+    %{
+    searchField = zeros(tsz);
+    searchField( max(1,NNF(ii,jj,1)-Radius(1)):min(NNF(ii,jj,1)+Radius(1),tsz(1)),...
+        max(1,NNF(ii,jj,2)-Radius(1)):min(NNF(ii,jj,2)+Radius(1),tsz(1)) ) = 1;
+    searchField(~validCenters) = 0;
+
+    debug.searchField = searchField;
+
+    searchField_lin = find(searchField);
+    newNN = searchField_lin(randi([1,length(searchField_lin)]));
+    [x,y] = ind2sub(tsz,newNN);
+
+    ofs_rs(1) = offsets(ii,jj);
+    ofs_rs(2) = sourceImg(ii,jj) - sourceImg(x-w:x+w,y-w:y+w);
+
+    [~,idx] = min(ofs_rs);
+    if idx==2
+        offsets(ii,jj) = ofs_rs(idx);
+        NNF(ii,jj,:) = inewNN;
+    end
     %}
 
     if dispProgress((ii-1)*tsz(2)+jj); fprintf('='); end

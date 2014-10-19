@@ -64,7 +64,7 @@ diary off
 %% commands
 %{
 
-[bin, coord] = testNNFDoesNotUseMissingRegion(NNF,validCenters);
+[bin, coord] = testNNFDoesNotUseMissingRegion(NNF,debug.validCenters);
 
 %}
 
