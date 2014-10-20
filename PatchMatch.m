@@ -192,7 +192,7 @@ for ii = ii_seq
                 NNF(ii,jj,:) = NNF(ii-1,jj,:);
                 NNF(ii,jj,1) = NNF(ii,jj,1)+1;
 
-                if sum(sum(mask(ii,jj)))==0 % if current patch is totally blank
+                if sum(sum(mask(max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)))))==0 % if current patch is totally blank
                     offsets(ii,jj) = 1.02*offsets(ii-1,jj);
                 else
                     tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
@@ -208,7 +208,7 @@ for ii = ii_seq
                 NNF(ii,jj,:) = NNF(ii,jj-1,:);
                 NNF(ii,jj,2) = NNF(ii,jj,2)+1;
 
-                if sum(sum(mask(ii,jj)))==0 % if current patch is totally blank
+                if sum(sum(mask(max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)))))==0 % if current patch is totally blank
                     offsets(ii,jj) = 1.02*offsets(ii,jj-1);
                 else
                     tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
@@ -251,7 +251,7 @@ for ii = ii_seq
                 NNF(ii,jj,:) = NNF(ii+1,jj,:);
                 NNF(ii,jj,1) = NNF(ii,jj,1)-1;
 
-                if sum(sum(mask(ii,jj)))==0 % if current patch is totally blank
+                if sum(sum(mask(max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)))))==0 % if current patch is totally blank
                     offsets(ii,jj) = 1.02*offsets(ii+1,jj);
                 else
                     tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
@@ -267,7 +267,7 @@ for ii = ii_seq
                 NNF(ii,jj,:) = NNF(ii,jj+1,:);
                 NNF(ii,jj,2) = NNF(ii,jj,2)-1;
 
-                if sum(sum(mask(ii,jj)))==0 % if current patch is totally blank
+                if sum(sum(mask(max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)))))==0 % if current patch is totally blank
                     offsets(ii,jj) = 1.02*offsets(ii,jj+1);
                 else
                     tmp = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w)...
@@ -285,33 +285,50 @@ for ii = ii_seq
     %--  RandomSearch  --%
     %%%%%%%%%%%%%%%%%%%%%%
 
-    iis_min = max(1+w,NNF(ii,jj,1)-Radius(:));
-    iis_max = min(NNF(ii,jj,1)+Radius(:),ssz(1)-w);
-    jjs_min = max(1+w,NNF(ii,jj,2)-Radius(:));
-    jjs_max = min(NNF(ii,jj,2)+Radius(:),ssz(2)-w);
+    % totally blankじゃないところをとりあえずやろう
+    %{
+    if sum(sum(mask(max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)))))==0 % if current patch is totally blank
+        iis_min = max(1+w,NNF(ii,jj,1)-Radius(:));
+        iis_max = min(NNF(ii,jj,1)+Radius(:),ssz(1)-w);
+        jjs_min = max(1+w,NNF(ii,jj,2)-Radius(:));
+        jjs_max = min(NNF(ii,jj,2)+Radius(:),ssz(2)-w);
 
-    iis = floor(rand(lenRad,1).*(iis_max(:)-iis_min(:)+1)) + iis_min(:);
-    jjs = floor(rand(lenRad,1).*(jjs_max(:)-jjs_min(:)+1)) + jjs_min(:);
+        iis = floor(rand(lenRad,1).*(iis_max(:)-iis_min(:)+1)) + iis_min(:);
+        jjs = floor(rand(lenRad,1).*(jjs_max(:)-jjs_min(:)+1)) + jjs_min(:);
 
-    nns(:,1) = NNF(ii,jj,:);
-    nns(:,2:lenRad+1) = [iis';jjs'];
+        nns(:,1) = NNF(ii,jj,:);
+        nns(:,2:lenRad+1) = [iis';jjs'];
 
-    ofs_rs(1) = offsets(ii,jj);
-    for itr_rs = 1:lenRad
-        tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis(itr_rs)-w:iis(itr_rs)+w,jjs(itr_rs)-w:jjs(itr_rs)+w);
-        tmp2 = tmp1(~isnan(tmp1(:)));
-        ofs_rs(itr_rs+1) = sum(tmp2.^2)/length(tmp2);
+        ofs_rs(1) = offsets(ii,jj);
+        for itr_rs = 1:lenRad
+            tmp1 = targetImg_NaN(w+ii-w:w+ii+w,w+jj-w:w+jj+w) - sourceImg(iis(itr_rs)-w:iis(itr_rs)+w,jjs(itr_rs)-w:jjs(itr_rs)+w);
+            tmp2 = tmp1(~isnan(tmp1(:)));
+            ofs_rs(itr_rs+1) = sum(tmp2.^2)/length(tmp2);
+        end
+
+        [~,idx] = min(ofs_rs);
+        offsets(ii,jj) = ofs_rs(idx);
+        NNF(ii,jj,:) = nns(:,idx);
     end
-
-    [~,idx] = min(ofs_rs);
-    offsets(ii,jj) = ofs_rs(idx);
-    NNF(ii,jj,:) = nns(:,idx);
     %}
 
     % RandomSearchのやりなおし
     % validCentersのみからとってくる
+    % どうやってoffsetsを計算するんだ・・・・？
+    % どうやって・・・。
+    % 上みたいにpropagateすることもできないし・・・。
+    % むむむ・・・。
+    % とりあえず結果向上すればよい。とりあえず・・・！！！
+
 
     %{
+        cand = validCenters_lin(randi([1,length(validCenters_lin)]));
+        [x,y] = ind2sub(tsz,cand);
+    %}
+
+    %{
+
+
     searchField = zeros(tsz);
     searchField( max(1,NNF(ii,jj,1)-Radius(1)):min(NNF(ii,jj,1)+Radius(1),tsz(1)),...
         max(1,NNF(ii,jj,2)-Radius(1)):min(NNF(ii,jj,2)+Radius(1),tsz(1)) ) = 1;
