@@ -287,7 +287,7 @@ for ii = ii_seq
 
     % totally blankじゃないところをとりあえずやろう
     %{
-    if sum(sum(mask(max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)))))==0 % if current patch is totally blank
+    if sum(sum(mask(max(1,ii-w):min(ii+w,tsz(1)),max(1,jj-w):min(jj+w,tsz(2)))))~=0 % if current patch is not totally blank
         iis_min = max(1+w,NNF(ii,jj,1)-Radius(:));
         iis_max = min(NNF(ii,jj,1)+Radius(:),ssz(1)-w);
         jjs_min = max(1+w,NNF(ii,jj,2)-Radius(:));
